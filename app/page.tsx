@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -28,6 +28,8 @@ export default function Home() {
   const [turnTime, setTurnTime] = useState("7 business days");
   const [message, setMessage] = useState("");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [filterCity, setFilterCity] = useState("");
+  const [filterState, setFilterState] = useState("");
 
   async function loadSubmissions() {
     const { data, error } = await supabase
@@ -66,15 +68,51 @@ export default function Home() {
     }
   }
 
-  const totalSubmissions = submissions.length;
+  const filteredSubmissions = useMemo(() => {
+    return submissions.filter((item) => {
+      const cityMatch = filterCity
+        ? item.city?.toLowerCase().includes(filterCity.toLowerCase())
+        : true;
+
+      const stateMatch = filterState
+        ? item.state?.toLowerCase().includes(filterState.toLowerCase())
+        : true;
+
+      return cityMatch && stateMatch;
+    });
+  }, [submissions, filterCity, filterState]);
+
+  const totalSubmissions = filteredSubmissions.length;
 
   const averageFee =
-    submissions.length > 0
+    filteredSubmissions.length > 0
       ? Math.round(
-          submissions.reduce((sum, item) => sum + Number(item.fee || 0), 0) /
-            submissions.length
+          filteredSubmissions.reduce(
+            (sum, item) => sum + Number(item.fee || 0),
+            0
+          ) / filteredSubmissions.length
         )
       : 0;
+
+  const activeMarkets = new Set(
+    filteredSubmissions.map((item) => `${item.city}, ${item.state}`)
+  ).size;
+
+  const loanTypeAverages = useMemo(() => {
+    const groups: Record<string, number[]> = {};
+
+    filteredSubmissions.forEach((item) => {
+      const key = item.loan_type || "Unknown";
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(Number(item.fee || 0));
+    });
+
+    return Object.entries(groups).map(([loan, fees]) => ({
+      loan,
+      average: Math.round(fees.reduce((a, b) => a + b, 0) / fees.length),
+      count: fees.length,
+    }));
+  }, [filteredSubmissions]);
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-900">
@@ -102,10 +140,42 @@ export default function Home() {
             Real fee data. Real market insight. Built for appraisers.
           </p>
 
+          <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="mb-4 text-xl font-bold text-blue-950">
+              Fee Search
+            </h2>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              <input
+                className="rounded-xl border px-4 py-3"
+                placeholder="Filter by city"
+                value={filterCity}
+                onChange={(e) => setFilterCity(e.target.value)}
+              />
+
+              <input
+                className="rounded-xl border px-4 py-3"
+                placeholder="Filter by state"
+                value={filterState}
+                onChange={(e) => setFilterState(e.target.value)}
+              />
+
+              <button
+                onClick={() => {
+                  setFilterCity("");
+                  setFilterState("");
+                }}
+                className="rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white"
+              >
+                Clear Filters
+              </button>
+            </div>
+          </div>
+
           <div className="mb-6 grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <p className="text-xs font-semibold uppercase text-slate-500">
-                Total Submissions
+                Matching Submissions
               </p>
               <h2 className="mt-3 text-4xl font-bold text-blue-950">
                 {totalSubmissions}
@@ -126,8 +196,38 @@ export default function Home() {
                 Active Markets
               </p>
               <h2 className="mt-3 text-4xl font-bold text-blue-950">
-                {new Set(submissions.map((item) => item.city)).size}
+                {activeMarkets}
               </h2>
+            </div>
+          </div>
+
+          <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-xl font-bold text-blue-950">
+              Average Fee by Loan Type
+            </h2>
+
+            <div className="space-y-3">
+              {loanTypeAverages.length === 0 && (
+                <p className="text-slate-500">No matching data yet.</p>
+              )}
+
+              {loanTypeAverages.map((item) => (
+                <div
+                  key={item.loan}
+                  className="flex items-center justify-between rounded-xl border border-slate-200 p-4"
+                >
+                  <div>
+                    <p className="font-semibold">{item.loan}</p>
+                    <p className="text-sm text-slate-500">
+                      {item.count} submission{item.count === 1 ? "" : "s"}
+                    </p>
+                  </div>
+
+                  <p className="text-2xl font-bold text-blue-950">
+                    ${item.average}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -190,13 +290,16 @@ export default function Home() {
             </h2>
 
             <div className="space-y-3">
-              {submissions.map((item) => (
+              {filteredSubmissions.map((item) => (
                 <div
                   key={item.id}
                   className="rounded-xl border border-slate-200 p-4 text-sm"
                 >
-                  <strong>{item.city}, {item.state}</strong> — {item.form_type} /{" "}
-                  {item.loan_type} — ${item.fee} — {item.turn_time}
+                  <strong>
+                    {item.city}, {item.state}
+                  </strong>{" "}
+                  — {item.form_type} / {item.loan_type} — ${item.fee} —{" "}
+                  {item.turn_time}
                 </div>
               ))}
             </div>
@@ -205,4 +308,3 @@ export default function Home() {
       </div>
     </main>
   );
-}
