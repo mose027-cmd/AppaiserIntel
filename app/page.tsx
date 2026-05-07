@@ -2,6 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -50,7 +61,7 @@ export default function Home() {
     const { data: billingData } = await supabase
       .from("billing_records")
       .select("*")
-      .order("order_date", { ascending: false });
+      .order("order_date", { ascending: true });
 
     setSubmissions(submissionData || []);
     setBillingRecords(billingData || []);
@@ -134,7 +145,7 @@ export default function Home() {
         avg: Math.round(data.total / data.count),
       }))
       .sort((a, b) => b.avg - a.avg)
-      .slice(0, 10);
+      .slice(0, 8);
   }, [billingRecords]);
 
   const mostActiveClients = useMemo(() => {
@@ -154,8 +165,51 @@ export default function Home() {
         total: data.total,
       }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
+      .slice(0, 8);
   }, [billingRecords]);
+
+  const yearlyFeeTrend = useMemo(() => {
+    const groups: Record<
+      string,
+      { gross: number; net: number; tech: number; count: number }
+    > = {};
+
+    billingRecords.forEach((record) => {
+      if (!record.order_date) return;
+
+      const year = new Date(record.order_date).getFullYear().toString();
+
+      if (!groups[year]) {
+        groups[year] = {
+          gross: 0,
+          net: 0,
+          tech: 0,
+          count: 0,
+        };
+      }
+
+      groups[year].gross += Number(record.gross_fee || 0);
+      groups[year].net += Number(record.net_fee || 0);
+      groups[year].tech += Number(record.tech_fee || 0);
+      groups[year].count += 1;
+    });
+
+    return Object.entries(groups)
+      .map(([year, data]) => ({
+        year,
+        avgGross: Math.round(data.gross / data.count),
+        avgNet: Math.round(data.net / data.count),
+        techFees: Math.round(data.tech),
+        grossFees: Math.round(data.gross),
+        records: data.count,
+      }))
+      .sort((a, b) => Number(a.year) - Number(b.year));
+  }, [billingRecords]);
+
+  const clientVolumeChart = mostActiveClients.map((item) => ({
+    name: item.name.length > 16 ? item.name.slice(0, 16) + "..." : item.name,
+    records: item.count,
+  }));
 
   const avgSubmissionFee =
     submissions.length > 0
@@ -199,6 +253,7 @@ export default function Home() {
 
         <section className="flex-1 p-10">
           <h1 className="text-6xl font-bold tracking-tight">Dashboard</h1>
+
           <p className="mt-2 text-2xl text-slate-600">
             Real fee data. Real market insight. Built for appraisers.
           </p>
@@ -225,6 +280,69 @@ export default function Home() {
                 value={`$${Math.round(billingStats.techTotal).toLocaleString()}`}
               />
             </div>
+          </div>
+
+          <div className="mt-10 grid grid-cols-1 gap-6 xl:grid-cols-2">
+            <ChartCard title="Average Fee Trend by Year">
+              <ResponsiveContainer width="100%" height={320}>
+                <LineChart data={yearlyFeeTrend}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="avgGross"
+                    strokeWidth={3}
+                    name="Avg Gross Fee"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="avgNet"
+                    strokeWidth={3}
+                    name="Avg Net Fee"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartCard>
+
+            <ChartCard title="Most Active Clients by Volume">
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={clientVolumeChart}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="records" name="Records" />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          </div>
+
+          <div className="mt-10 grid grid-cols-1 gap-6 xl:grid-cols-2">
+            <ChartCard title="Gross Fees by Year">
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={yearlyFeeTrend}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="grossFees" name="Gross Fees" />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+
+            <ChartCard title="Tech Fees Eaten by Year">
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={yearlyFeeTrend}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="year" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="techFees" name="Tech Fees" />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -276,7 +394,9 @@ export default function Home() {
               Submit Anonymous Data
             </button>
 
-            {message && <div className="mt-4 text-lg text-slate-600">{message}</div>}
+            {message && (
+              <div className="mt-4 text-lg text-slate-600">{message}</div>
+            )}
           </div>
         </section>
       </div>
@@ -309,7 +429,23 @@ function StatCard({ title, value }: { title: string; value: any }) {
       <div className="text-sm font-medium uppercase tracking-wide text-slate-500">
         {title}
       </div>
+
       <div className="mt-4 text-5xl font-bold text-slate-900">{value}</div>
+    </div>
+  );
+}
+
+function ChartCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+      <h3 className="mb-6 text-4xl font-bold">{title}</h3>
+      {children}
     </div>
   );
 }
