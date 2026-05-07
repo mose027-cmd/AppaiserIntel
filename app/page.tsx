@@ -31,9 +31,10 @@ export default function Home() {
       },
     ]);
 
-    if (error) {
-      setMessage("Error submitting data.");
-      console.error(error);
+if (error) {
+  setMessage("Error: " + error.message);
+  console.error(error);
+}
     } else {
       setMessage("Submitted successfully.");
     }
