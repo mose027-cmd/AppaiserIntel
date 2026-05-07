@@ -22,23 +22,17 @@ type BillingRecord = {
   id: number;
   order_date: string | null;
   client_name: string | null;
-  lender_name: string | null;
-  amc_name: string | null;
-  client_type: string | null;
-  city: string | null;
-  state: string | null;
-  form_type: string | null;
-  loan_type: string | null;
   gross_fee: number | null;
   tech_fee: number | null;
   net_fee: number | null;
-  turn_time_days: number | null;
-  revision_count: number | null;
-  status: string | null;
-  notes: string | null;
+  form_type: string | null;
+  zip_code: string | null;
 };
 
 export default function Home() {
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [billingRecords, setBillingRecords] = useState<BillingRecord[]>([]);
+
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [formType, setFormType] = useState("");
@@ -46,14 +40,6 @@ export default function Home() {
   const [fee, setFee] = useState("");
   const [turnTime, setTurnTime] = useState("");
   const [message, setMessage] = useState("");
-
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [billingRecords, setBillingRecords] = useState<BillingRecord[]>([]);
-
-  const [search, setSearch] = useState("");
-  const [loanFilter, setLoanFilter] = useState("All");
-  const [formFilter, setFormFilter] = useState("All");
-  const [sortOrder, setSortOrder] = useState("Newest");
 
   async function loadData() {
     const { data: submissionData } = await supabase
@@ -64,7 +50,7 @@ export default function Home() {
     const { data: billingData } = await supabase
       .from("billing_records")
       .select("*")
-      .order("created_at", { ascending: false });
+      .order("order_date", { ascending: false });
 
     setSubmissions(submissionData || []);
     setBillingRecords(billingData || []);
@@ -90,7 +76,6 @@ export default function Home() {
 
     if (error) {
       setMessage("Error: " + error.message);
-      console.error(error);
     } else {
       setMessage("Submitted successfully.");
       setCity("");
@@ -103,78 +88,43 @@ export default function Home() {
     }
   }
 
-  const filteredSubmissions = useMemo(() => {
-    let results = [...submissions];
+  const billingStats = useMemo(() => {
+    const count = billingRecords.length;
 
-    if (search.trim()) {
-      results = results.filter((s) =>
-        `${s.city} ${s.state} ${s.form_type} ${s.loan_type}`
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      );
-    }
+    const grossTotal = billingRecords.reduce(
+      (sum, r) => sum + Number(r.gross_fee || 0),
+      0
+    );
 
-    if (loanFilter !== "All") {
-      results = results.filter((s) => s.loan_type === loanFilter);
-    }
+    const techTotal = billingRecords.reduce(
+      (sum, r) => sum + Number(r.tech_fee || 0),
+      0
+    );
 
-    if (formFilter !== "All") {
-      results = results.filter((s) => s.form_type === formFilter);
-    }
+    const netTotal = billingRecords.reduce(
+      (sum, r) => sum + Number(r.net_fee || 0),
+      0
+    );
 
-    if (sortOrder === "Highest Fee") {
-      results.sort((a, b) => b.fee - a.fee);
-    } else if (sortOrder === "Lowest Fee") {
-      results.sort((a, b) => a.fee - b.fee);
-    }
+    return {
+      count,
+      avgGross: count ? Math.round(grossTotal / count) : 0,
+      avgTech: count ? Math.round(techTotal / count) : 0,
+      avgNet: count ? Math.round(netTotal / count) : 0,
+      grossTotal,
+      techTotal,
+      netTotal,
+    };
+  }, [billingRecords]);
 
-    return results;
-  }, [submissions, search, loanFilter, formFilter, sortOrder]);
-
-  const avgFee =
-    filteredSubmissions.length > 0
-      ? Math.round(
-          filteredSubmissions.reduce((acc, cur) => acc + cur.fee, 0) /
-            filteredSubmissions.length
-        )
-      : 0;
-
-  const highestFee =
-    filteredSubmissions.length > 0
-      ? Math.max(...filteredSubmissions.map((s) => s.fee))
-      : 0;
-
-  const activeMarkets = new Set(filteredSubmissions.map((s) => s.city)).size;
-
-  const avgNetFee =
-    billingRecords.length > 0
-      ? Math.round(
-          billingRecords.reduce((sum, item) => sum + Number(item.net_fee || 0), 0) /
-            billingRecords.length
-        )
-      : 0;
-
-  const avgTechFee =
-    billingRecords.length > 0
-      ? Math.round(
-          billingRecords.reduce((sum, item) => sum + Number(item.tech_fee || 0), 0) /
-            billingRecords.length
-        )
-      : 0;
-
-  const totalGrossFees = billingRecords.reduce(
-    (sum, item) => sum + Number(item.gross_fee || 0),
-    0
-  );
-
-  const lenderStats = useMemo(() => {
+  const topPayingClients = useMemo(() => {
     const groups: Record<string, { count: number; total: number }> = {};
 
-    billingRecords.forEach((record) => {
-      const name = record.lender_name || record.client_name || "Unknown";
+    billingRecords.forEach((r) => {
+      const name = r.client_name || "Unknown";
       if (!groups[name]) groups[name] = { count: 0, total: 0 };
       groups[name].count += 1;
-      groups[name].total += Number(record.net_fee || record.gross_fee || 0);
+      groups[name].total += Number(r.net_fee || r.gross_fee || 0);
     });
 
     return Object.entries(groups)
@@ -184,29 +134,36 @@ export default function Home() {
         avg: Math.round(data.total / data.count),
       }))
       .sort((a, b) => b.avg - a.avg)
-      .slice(0, 5);
+      .slice(0, 10);
   }, [billingRecords]);
 
-  const amcStats = useMemo(() => {
+  const mostActiveClients = useMemo(() => {
     const groups: Record<string, { count: number; total: number }> = {};
 
-    billingRecords.forEach((record) => {
-      const name = record.amc_name || "Unknown";
+    billingRecords.forEach((r) => {
+      const name = r.client_name || "Unknown";
       if (!groups[name]) groups[name] = { count: 0, total: 0 };
       groups[name].count += 1;
-      groups[name].total += Number(record.net_fee || record.gross_fee || 0);
+      groups[name].total += Number(r.net_fee || r.gross_fee || 0);
     });
 
     return Object.entries(groups)
       .map(([name, data]) => ({
         name,
         count: data.count,
-        avg: Math.round(data.total / data.count),
+        total: data.total,
       }))
-      .filter((item) => item.name !== "Unknown")
-      .sort((a, b) => b.avg - a.avg)
-      .slice(0, 5);
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
   }, [billingRecords]);
+
+  const avgSubmissionFee =
+    submissions.length > 0
+      ? Math.round(
+          submissions.reduce((sum, s) => sum + Number(s.fee || 0), 0) /
+            submissions.length
+        )
+      : 0;
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-900">
@@ -217,21 +174,22 @@ export default function Home() {
           </div>
 
           <nav className="space-y-3">
-            <div className="rounded-xl bg-blue-50 px-4 py-3 font-medium text-blue-700">
-              Dashboard
-            </div>
-
             {[
+              "Dashboard",
               "Fee Search",
               "Submit Data",
               "Billing Intel",
               "AMC Scorecard",
               "Market Trends",
               "Reports",
-            ].map((item) => (
+            ].map((item, index) => (
               <div
                 key={item}
-                className="cursor-pointer rounded-xl px-4 py-3 text-slate-700 transition hover:bg-slate-100"
+                className={
+                  index === 0
+                    ? "rounded-xl bg-blue-50 px-4 py-3 font-medium text-blue-700"
+                    : "cursor-pointer rounded-xl px-4 py-3 text-slate-700 transition hover:bg-slate-100"
+                }
               >
                 {item}
               </div>
@@ -241,94 +199,74 @@ export default function Home() {
 
         <section className="flex-1 p-10">
           <h1 className="text-6xl font-bold tracking-tight">Dashboard</h1>
-
           <p className="mt-2 text-2xl text-slate-600">
             Real fee data. Real market insight. Built for appraisers.
           </p>
 
           <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-4">
-            <StatCard title="MATCHING SUBMISSIONS" value={filteredSubmissions.length} />
-            <StatCard title="AVG FEE" value={`$${avgFee}`} />
-            <StatCard title="ACTIVE MARKETS" value={activeMarkets} />
-            <StatCard title="HIGHEST FEE" value={`$${highestFee}`} />
+            <StatCard title="COMMUNITY SUBMISSIONS" value={submissions.length} />
+            <StatCard title="AVG COMMUNITY FEE" value={`$${avgSubmissionFee}`} />
+            <StatCard title="BILLING RECORDS" value={billingStats.count} />
+            <StatCard
+              title="TOTAL GROSS FEES"
+              value={`$${Math.round(billingStats.grossTotal).toLocaleString()}`}
+            />
           </div>
 
           <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
             <h2 className="mb-6 text-4xl font-bold">Billing Intelligence</h2>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-              <StatCard title="IMPORTED RECORDS" value={billingRecords.length} />
-              <StatCard title="AVG NET FEE" value={`$${avgNetFee}`} />
-              <StatCard title="AVG TECH FEE" value={`$${avgTechFee}`} />
-              <StatCard title="GROSS FEES" value={`$${totalGrossFees.toLocaleString()}`} />
-            </div>
-
-            {billingRecords.length === 0 && (
-              <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-slate-600">
-                Historical billing data has not been imported yet. Once your Excel file is uploaded,
-                this section will populate lender rankings, AMC fee trends, tech fees, and historical
-                revenue intelligence.
-              </div>
-            )}
-          </div>
-
-          <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 className="mb-6 text-4xl font-bold">Fee Search</h2>
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-              <input
-                placeholder="Search city, state, form, loan..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="rounded-2xl border border-slate-300 px-4 py-4 text-lg outline-none focus:border-blue-500"
+              <StatCard title="AVG GROSS FEE" value={`$${billingStats.avgGross}`} />
+              <StatCard title="AVG TECH FEE" value={`$${billingStats.avgTech}`} />
+              <StatCard title="AVG NET FEE" value={`$${billingStats.avgNet}`} />
+              <StatCard
+                title="TOTAL TECH FEES"
+                value={`$${Math.round(billingStats.techTotal).toLocaleString()}`}
               />
-
-              <select
-                value={loanFilter}
-                onChange={(e) => setLoanFilter(e.target.value)}
-                className="rounded-2xl border border-slate-300 px-4 py-4 text-lg"
-              >
-                <option>All</option>
-                <option>Conventional</option>
-                <option>FHA</option>
-                <option>VA</option>
-                <option>USDA</option>
-              </select>
-
-              <select
-                value={formFilter}
-                onChange={(e) => setFormFilter(e.target.value)}
-                className="rounded-2xl border border-slate-300 px-4 py-4 text-lg"
-              >
-                <option>All</option>
-                <option>1004 URAR</option>
-                <option>1073 Condo</option>
-                <option>1025 Multi-Family</option>
-                <option>2055 Exterior</option>
-              </select>
-
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                className="rounded-2xl border border-slate-300 px-4 py-4 text-lg"
-              >
-                <option>Newest</option>
-                <option>Highest Fee</option>
-                <option>Lowest Fee</option>
-              </select>
             </div>
           </div>
 
+          <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Leaderboard
+              title="Top Paying Clients by Avg Net Fee"
+              subtitle="Ranked by average net fee per record"
+              items={topPayingClients}
+              valueLabel="avg"
+            />
+
+            <Leaderboard
+              title="Most Active Clients"
+              subtitle="Ranked by number of billing records"
+              items={mostActiveClients}
+              valueLabel="count"
+            />
+          </div>
+
           <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 className="mb-8 text-5xl font-bold">Anonymous Fee Submission</h2>
+            <h2 className="mb-8 text-5xl font-bold">
+              Anonymous Fee Submission
+            </h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-4 text-xl" />
-              <input placeholder="State" value={state} onChange={(e) => setState(e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-4 text-xl" />
-              <input placeholder="Form Type" value={formType} onChange={(e) => setFormType(e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-4 text-xl" />
-              <input placeholder="Loan Type" value={loanType} onChange={(e) => setLoanType(e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-4 text-xl" />
-              <input placeholder="Fee" value={fee} onChange={(e) => setFee(e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-4 text-xl" />
-              <input placeholder="Turn Time" value={turnTime} onChange={(e) => setTurnTime(e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-4 text-xl" />
+              <Input placeholder="City" value={city} setValue={setCity} />
+              <Input placeholder="State" value={state} setValue={setState} />
+              <Input
+                placeholder="Form Type"
+                value={formType}
+                setValue={setFormType}
+              />
+              <Input
+                placeholder="Loan Type"
+                value={loanType}
+                setValue={setLoanType}
+              />
+              <Input placeholder="Fee" value={fee} setValue={setFee} />
+              <Input
+                placeholder="Turn Time"
+                value={turnTime}
+                setValue={setTurnTime}
+              />
             </div>
 
             <button
@@ -340,36 +278,28 @@ export default function Home() {
 
             {message && <div className="mt-4 text-lg text-slate-600">{message}</div>}
           </div>
-
-          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-            <Leaderboard title="Top Lenders by Avg Fee" items={lenderStats} />
-            <Leaderboard title="Top AMCs by Avg Fee" items={amcStats} />
-          </div>
-
-          <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 className="mb-8 text-5xl font-bold">Recent Submissions</h2>
-
-            <div className="space-y-4">
-              {filteredSubmissions.map((s) => (
-                <div key={s.id} className="rounded-2xl border border-slate-200 p-6">
-                  <div className="text-3xl font-semibold">
-                    {s.city}, {s.state}
-                  </div>
-
-                  <div className="mt-2 text-xl text-slate-600">
-                    {s.form_type} / {s.loan_type}
-                  </div>
-
-                  <div className="mt-4 text-3xl font-bold text-blue-700">
-                    ${s.fee} — {s.turn_time}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </section>
       </div>
     </main>
+  );
+}
+
+function Input({
+  placeholder,
+  value,
+  setValue,
+}: {
+  placeholder: string;
+  value: string;
+  setValue: (value: string) => void;
+}) {
+  return (
+    <input
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      className="rounded-2xl border border-slate-300 px-4 py-4 text-xl"
+    />
   );
 }
 
@@ -386,38 +316,40 @@ function StatCard({ title, value }: { title: string; value: any }) {
 
 function Leaderboard({
   title,
+  subtitle,
   items,
+  valueLabel,
 }: {
   title: string;
-  items: { name: string; count: number; avg: number }[];
+  subtitle: string;
+  items: any[];
+  valueLabel: "avg" | "count";
 }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-      <h3 className="mb-6 text-4xl font-bold">{title}</h3>
+      <h3 className="text-4xl font-bold">{title}</h3>
+      <p className="mt-2 text-slate-500">{subtitle}</p>
 
-      {items.length === 0 ? (
-        <p className="text-slate-500">
-          No billing records imported yet.
-        </p>
-      ) : (
-        <div className="space-y-4">
-          {items.map((item) => (
-            <div
-              key={item.name}
-              className="flex items-center justify-between rounded-2xl border border-slate-200 p-5"
-            >
-              <div>
-                <div className="text-2xl font-semibold">{item.name}</div>
-                <div className="text-slate-500">{item.count} records</div>
-              </div>
-
-              <div className="text-4xl font-bold text-blue-700">
-                ${item.avg}
-              </div>
+      <div className="mt-6 space-y-4">
+        {items.map((item, index) => (
+          <div
+            key={item.name}
+            className="flex items-center justify-between rounded-2xl border border-slate-200 p-5"
+          >
+            <div>
+              <div className="text-sm text-slate-400">#{index + 1}</div>
+              <div className="text-2xl font-semibold">{item.name}</div>
+              <div className="text-slate-500">{item.count} records</div>
             </div>
-          ))}
-        </div>
-      )}
+
+            <div className="text-4xl font-bold text-blue-700">
+              {valueLabel === "avg"
+                ? `$${item.avg}`
+                : item.count.toLocaleString()}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
