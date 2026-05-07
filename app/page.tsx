@@ -29,6 +29,11 @@ export default function Home() {
   const [message, setMessage] = useState("");
   const [submissions, setSubmissions] = useState<Submission[]>([]);
 
+  const [search, setSearch] = useState("");
+  const [loanFilter, setLoanFilter] = useState("All");
+  const [formFilter, setFormFilter] = useState("All");
+  const [sortBy, setSortBy] = useState("Newest");
+
   async function loadData() {
     const { data, error } = await supabase
       .from("submissions")
@@ -72,24 +77,81 @@ export default function Home() {
     }
   }
 
-  const totalSubmissions = submissions.length;
+  const filteredSubmissions = useMemo(() => {
+    let results = [...submissions];
+
+    if (search.trim()) {
+      const query = search.toLowerCase();
+
+      results = results.filter((item) =>
+        [
+          item.city,
+          item.state,
+          item.form_type,
+          item.loan_type,
+          item.turn_time,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(query)
+      );
+    }
+
+    if (loanFilter !== "All") {
+      results = results.filter((item) => item.loan_type === loanFilter);
+    }
+
+    if (formFilter !== "All") {
+      results = results.filter((item) => item.form_type === formFilter);
+    }
+
+    if (sortBy === "Highest Fee") {
+      results.sort((a, b) => Number(b.fee || 0) - Number(a.fee || 0));
+    }
+
+    if (sortBy === "Lowest Fee") {
+      results.sort((a, b) => Number(a.fee || 0) - Number(b.fee || 0));
+    }
+
+    if (sortBy === "Newest") {
+      results.sort(
+        (a, b) =>
+          new Date(b.created_at || "").getTime() -
+          new Date(a.created_at || "").getTime()
+      );
+    }
+
+    return results;
+  }, [submissions, search, loanFilter, formFilter, sortBy]);
+
+  const totalSubmissions = filteredSubmissions.length;
 
   const avgFee =
     totalSubmissions > 0
       ? Math.round(
-          submissions.reduce((sum, item) => sum + Number(item.fee || 0), 0) /
-            totalSubmissions
+          filteredSubmissions.reduce(
+            (sum, item) => sum + Number(item.fee || 0),
+            0
+          ) / totalSubmissions
         )
       : 0;
 
   const activeMarkets = new Set(
-    submissions.map((item) => `${item.city}, ${item.state}`)
+    filteredSubmissions.map((item) => `${item.city}, ${item.state}`)
   ).size;
+
+  const highestFee =
+    filteredSubmissions.length > 0
+      ? Math.max(...filteredSubmissions.map((item) => Number(item.fee || 0)))
+      : 0;
+
+  const loanTypes = ["All", ...new Set(submissions.map((item) => item.loan_type || "Unknown"))];
+  const formTypes = ["All", ...new Set(submissions.map((item) => item.form_type || "Unknown"))];
 
   const loanTypeAverages = useMemo(() => {
     const groups: Record<string, number[]> = {};
 
-    submissions.forEach((item) => {
+    filteredSubmissions.forEach((item) => {
       const key = item.loan_type || "Unknown";
       if (!groups[key]) groups[key] = [];
       groups[key].push(Number(item.fee || 0));
@@ -100,12 +162,12 @@ export default function Home() {
       avg: Math.round(fees.reduce((a, b) => a + b, 0) / fees.length),
       count: fees.length,
     }));
-  }, [submissions]);
+  }, [filteredSubmissions]);
 
   const formTypeAverages = useMemo(() => {
     const groups: Record<string, number[]> = {};
 
-    submissions.forEach((item) => {
+    filteredSubmissions.forEach((item) => {
       const key = item.form_type || "Unknown";
       if (!groups[key]) groups[key] = [];
       groups[key].push(Number(item.fee || 0));
@@ -116,12 +178,7 @@ export default function Home() {
       avg: Math.round(fees.reduce((a, b) => a + b, 0) / fees.length),
       count: fees.length,
     }));
-  }, [submissions]);
-
-  const highestFee =
-    submissions.length > 0
-      ? Math.max(...submissions.map((item) => Number(item.fee || 0)))
-      : 0;
+  }, [filteredSubmissions]);
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-900">
@@ -163,7 +220,7 @@ export default function Home() {
 
           <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="text-sm text-slate-500">TOTAL SUBMISSIONS</div>
+              <div className="text-sm text-slate-500">MATCHING SUBMISSIONS</div>
               <div className="mt-3 text-5xl font-bold">{totalSubmissions}</div>
             </div>
 
@@ -180,6 +237,49 @@ export default function Home() {
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="text-sm text-slate-500">HIGHEST FEE</div>
               <div className="mt-3 text-5xl font-bold">${highestFee}</div>
+            </div>
+          </div>
+
+          <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="mb-5 text-2xl font-bold">Fee Search</h2>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+              <input
+                className="rounded-xl border border-slate-300 p-4"
+                placeholder="Search city, state, form, loan..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+
+              <select
+                className="rounded-xl border border-slate-300 p-4"
+                value={loanFilter}
+                onChange={(e) => setLoanFilter(e.target.value)}
+              >
+                {loanTypes.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+
+              <select
+                className="rounded-xl border border-slate-300 p-4"
+                value={formFilter}
+                onChange={(e) => setFormFilter(e.target.value)}
+              >
+                {formTypes.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+
+              <select
+                className="rounded-xl border border-slate-300 p-4"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option>Newest</option>
+                <option>Highest Fee</option>
+                <option>Lowest Fee</option>
+              </select>
             </div>
           </div>
 
@@ -299,25 +399,32 @@ export default function Home() {
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
             <h2 className="mb-6 text-3xl font-bold">Recent Submissions</h2>
 
-            <div className="space-y-4">
-              {submissions.map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-xl border border-slate-200 p-5"
-                >
-                  <div className="text-lg font-semibold">
-                    {item.city}, {item.state}
-                  </div>
+            <div className="overflow-hidden rounded-xl border border-slate-200">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50 text-slate-500">
+                  <tr>
+                    <th className="p-4">Market</th>
+                    <th className="p-4">Form</th>
+                    <th className="p-4">Loan</th>
+                    <th className="p-4">Fee</th>
+                    <th className="p-4">Turn Time</th>
+                  </tr>
+                </thead>
 
-                  <div className="mt-2 text-slate-600">
-                    {item.form_type} / {item.loan_type}
-                  </div>
-
-                  <div className="mt-2 font-medium text-slate-900">
-                    ${item.fee} — {item.turn_time}
-                  </div>
-                </div>
-              ))}
+                <tbody>
+                  {filteredSubmissions.map((item) => (
+                    <tr key={item.id} className="border-t border-slate-200">
+                      <td className="p-4 font-semibold">
+                        {item.city}, {item.state}
+                      </td>
+                      <td className="p-4">{item.form_type}</td>
+                      <td className="p-4">{item.loan_type}</td>
+                      <td className="p-4 font-bold">${item.fee}</td>
+                      <td className="p-4">{item.turn_time}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
