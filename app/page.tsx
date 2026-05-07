@@ -20,21 +20,22 @@ export default function Home() {
   async function submitData() {
     setMessage("Submitting...");
 
-    const { error } = await supabase.from("submissions").insert([
-      {
-        city,
-        state,
-        form_type: formType,
-        loan_type: loanType,
-        fee: Number(fee),
-        turn_time: turnTime,
-      },
-    ]);
+    const { error } = await supabase
+      .from("submissions")
+      .insert([
+        {
+          city,
+          state,
+          form_type: formType,
+          loan_type: loanType,
+          fee: Number(fee),
+          turn_time: turnTime,
+        },
+      ]);
 
-if (error) {
-  setMessage("Error: " + error.message);
-  console.error(error);
-}
+    if (error) {
+      setMessage("Error: " + error.message);
+      console.error(error);
     } else {
       setMessage("Submitted successfully.");
     }
@@ -43,10 +44,17 @@ if (error) {
   return (
     <main className="min-h-screen bg-slate-100 text-slate-900">
       <div className="flex min-h-screen">
+
         <aside className="hidden w-64 border-r border-slate-200 bg-white p-6 md:block">
-          <div className="mb-10 text-2xl font-bold text-blue-900">AppraiserIntel</div>
+          <div className="mb-10 text-2xl font-bold text-blue-900">
+            AppraiserIntel
+          </div>
+
           <nav className="space-y-2 text-sm font-medium text-slate-600">
-            <div className="rounded-xl bg-blue-50 px-4 py-3 text-blue-700">Dashboard</div>
+            <div className="rounded-xl bg-blue-50 px-4 py-3 text-blue-700">
+              Dashboard
+            </div>
+
             <div className="px-4 py-3">Fee Search</div>
             <div className="px-4 py-3">Submit Data</div>
             <div className="px-4 py-3">AMC Scorecard</div>
@@ -56,23 +64,59 @@ if (error) {
         </aside>
 
         <section className="flex-1 p-6 md:p-10">
-          <h1 className="text-3xl font-bold text-blue-950">Dashboard</h1>
+
+          <h1 className="text-3xl font-bold text-blue-950">
+            Dashboard
+          </h1>
+
           <p className="mb-8 text-slate-500">
             Real fee data. Real market insight. Built for appraisers.
           </p>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+
             <h2 className="mb-4 text-xl font-bold text-blue-950">
               Anonymous Fee Submission
             </h2>
 
             <div className="grid gap-3 md:grid-cols-2">
-              <input className="rounded-xl border px-4 py-3" value={city} onChange={(e) => setCity(e.target.value)} />
-              <input className="rounded-xl border px-4 py-3" value={state} onChange={(e) => setState(e.target.value)} />
-              <input className="rounded-xl border px-4 py-3" value={formType} onChange={(e) => setFormType(e.target.value)} />
-              <input className="rounded-xl border px-4 py-3" value={loanType} onChange={(e) => setLoanType(e.target.value)} />
-              <input className="rounded-xl border px-4 py-3" value={fee} onChange={(e) => setFee(e.target.value)} />
-              <input className="rounded-xl border px-4 py-3" value={turnTime} onChange={(e) => setTurnTime(e.target.value)} />
+
+              <input
+                className="rounded-xl border px-4 py-3"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+              />
+
+              <input
+                className="rounded-xl border px-4 py-3"
+                value={state}
+                onChange={(e) => setState(e.target.value)}
+              />
+
+              <input
+                className="rounded-xl border px-4 py-3"
+                value={formType}
+                onChange={(e) => setFormType(e.target.value)}
+              />
+
+              <input
+                className="rounded-xl border px-4 py-3"
+                value={loanType}
+                onChange={(e) => setLoanType(e.target.value)}
+              />
+
+              <input
+                className="rounded-xl border px-4 py-3"
+                value={fee}
+                onChange={(e) => setFee(e.target.value)}
+              />
+
+              <input
+                className="rounded-xl border px-4 py-3"
+                value={turnTime}
+                onChange={(e) => setTurnTime(e.target.value)}
+              />
+
             </div>
 
             <button
@@ -82,9 +126,16 @@ if (error) {
               Submit Anonymous Data
             </button>
 
-            {message && <p className="mt-3 text-sm font-semibold">{message}</p>}
+            {message && (
+              <p className="mt-3 text-sm font-semibold">
+                {message}
+              </p>
+            )}
+
           </div>
+
         </section>
+
       </div>
     </main>
   );
