@@ -1,125 +1,121 @@
 export default function Home() {
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <section className="mx-auto max-w-7xl px-6 py-20">
-        <div className="mb-16 max-w-4xl">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-blue-400">
-            Appraiser fee intelligence
-          </p>
+    <main className="min-h-screen bg-slate-100 text-slate-900">
+      <div className="flex min-h-screen">
+        <aside className="hidden w-64 border-r border-slate-200 bg-white p-6 md:block">
+          <div className="mb-10 text-2xl font-bold text-blue-900">
+            AppraiserIntel
+          </div>
 
-          <h1 className="mb-6 text-5xl font-bold tracking-tight md:text-7xl">
-            Fee transparency for real estate appraisers.
-          </h1>
+          <nav className="space-y-2 text-sm font-medium text-slate-600">
+            <div className="rounded-xl bg-blue-50 px-4 py-3 text-blue-700">Dashboard</div>
+            <div className="px-4 py-3">Fee Search</div>
+            <div className="px-4 py-3">Submit Data</div>
+            <div className="px-4 py-3">AMC Scorecard</div>
+            <div className="px-4 py-3">Market Trends</div>
+            <div className="px-4 py-3">Reports</div>
+          </nav>
 
-          <p className="max-w-3xl text-xl leading-8 text-zinc-400">
-            Search real appraisal fee data, AMC ratings, lender trends, turn
-            times, revision burden, and market activity by city, state, form
-            type, and loan type.
-          </p>
-
-          <div className="mt-8 flex flex-wrap gap-4">
-            <button className="rounded-2xl bg-white px-6 py-3 font-semibold text-black transition hover:bg-zinc-200">
-              Search Market Data
-            </button>
-
-            <button className="rounded-2xl border border-zinc-700 px-6 py-3 font-semibold transition hover:border-zinc-500">
-              Submit Anonymous Fee
+          <div className="mt-16 rounded-2xl bg-blue-50 p-4 text-sm text-slate-600">
+            Submit anonymous fee data to help build accurate market insights.
+            <button className="mt-4 w-full rounded-xl bg-blue-700 px-4 py-2 font-semibold text-white">
+              Submit Data
             </button>
           </div>
-        </div>
+        </aside>
 
-        <div className="grid gap-5 md:grid-cols-3">
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6">
-            <h2 className="mb-3 text-2xl font-semibold">Fee Transparency</h2>
-            <p className="text-zinc-400">
-              View average fees by city, state, form type, loan type, and
-              client type.
-            </p>
+        <section className="flex-1 p-6 md:p-10">
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-blue-950">Dashboard</h1>
+              <p className="text-slate-500">
+                Real fee data. Real market insight. Built for appraisers.
+              </p>
+            </div>
+
+            <button className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700">
+              Last 30 Days
+            </button>
           </div>
 
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6">
-            <h2 className="mb-3 text-2xl font-semibold">AMC Ratings</h2>
-            <p className="text-zinc-400">
-              Compare AMCs by pay speed, revision burden, communication, and
-              overall fairness.
-            </p>
-          </div>
+          <div className="grid gap-4 md:grid-cols-4">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase text-slate-500">Avg Fee 1004 FHA</p>
+              <h2 className="mt-3 text-4xl font-bold text-blue-950">$625</h2>
+              <p className="mt-2 text-sm text-emerald-600">+4.3%</p>
+            </div>
 
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-6">
-            <h2 className="mb-3 text-2xl font-semibold">Lender Analytics</h2>
-            <p className="text-zinc-400">
-              Track turn times, fee trends, revision counts, and direct lender
-              versus AMC order patterns.
-            </p>
-          </div>
-        </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase text-slate-500">Avg Turn Time</p>
+              <h2 className="mt-3 text-4xl font-bold text-blue-950">5.2</h2>
+              <p className="mt-2 text-sm text-slate-500">days</p>
+            </div>
 
-        <section className="mt-20 grid gap-8 lg:grid-cols-2">
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-6">
-            <h2 className="mb-6 text-3xl font-bold">Search market trends</h2>
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase text-slate-500">Total Submissions</p>
+              <h2 className="mt-3 text-4xl font-bold text-blue-950">1,248</h2>
+              <p className="mt-2 text-sm text-emerald-600">+12.5%</p>
+            </div>
 
-            <div className="grid gap-4">
-              <input className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white" placeholder="City" />
-              <input className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white" placeholder="State" />
-              <select className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white">
-                <option>Form Type</option>
-                <option>1004</option>
-                <option>1075</option>
-                <option>1025</option>
-                <option>2055</option>
-              </select>
-              <select className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white">
-                <option>Loan Type</option>
-                <option>Conventional</option>
-                <option>FHA</option>
-                <option>VA</option>
-                <option>USDA</option>
-              </select>
-
-              <button className="mt-2 rounded-xl bg-blue-500 px-5 py-3 font-semibold text-white hover:bg-blue-400">
-                View Average Fees & Turn Times
-              </button>
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase text-slate-500">Active Markets</p>
+              <h2 className="mt-3 text-4xl font-bold text-blue-950">412</h2>
+              <p className="mt-2 text-sm text-slate-500">cities</p>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900 p-6">
-            <h2 className="mb-6 text-3xl font-bold">Anonymous submission</h2>
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-blue-950">Average Fee by Loan Type</h2>
+              <button className="rounded-lg border border-slate-300 px-3 py-2 text-sm">Cincinnati, OH</button>
+            </div>
 
-            <div className="grid gap-4">
-              <input className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white" placeholder="State" />
-              <input className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white" placeholder="City" />
-              <input className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white" placeholder="Fee $" />
-              <input className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white" placeholder="Turn Time in Days" />
-              <input className="rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-white" placeholder="Revision Count" />
+            <div className="flex h-64 items-end justify-between gap-4 border-b border-slate-200 px-4">
+              {[
+                ["FHA", "70%", "$625"],
+                ["VA", "66%", "$600"],
+                ["Conventional", "60%", "$575"],
+                ["USDA", "52%", "$525"],
+                ["Other", "75%", "$650"],
+              ].map(([label, height, fee]) => (
+                <div key={label} className="flex flex-1 flex-col items-center">
+                  <p className="mb-2 text-sm font-semibold text-blue-950">{fee}</p>
+                  <div className="w-full rounded-t-xl bg-blue-600" style={{ height }} />
+                  <p className="mt-3 text-sm text-slate-600">{label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
 
-              <button className="mt-2 rounded-xl bg-white px-5 py-3 font-semibold text-black hover:bg-zinc-200">
-                Submit Fee Data
+          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+              <h2 className="mb-4 text-xl font-bold text-blue-950">Anonymous Fee Submission</h2>
+              <div className="grid gap-3 md:grid-cols-2">
+                <input className="rounded-xl border border-slate-300 px-4 py-3" placeholder="City" />
+                <input className="rounded-xl border border-slate-300 px-4 py-3" placeholder="State" />
+                <input className="rounded-xl border border-slate-300 px-4 py-3" placeholder="Form Type" />
+                <input className="rounded-xl border border-slate-300 px-4 py-3" placeholder="Loan Type" />
+                <input className="rounded-xl border border-slate-300 px-4 py-3" placeholder="Fee" />
+                <input className="rounded-xl border border-slate-300 px-4 py-3" placeholder="Turn Time" />
+              </div>
+              <button className="mt-4 rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white">
+                Submit Anonymous Data
               </button>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-bold text-blue-950">Top AMC Scores</h2>
+              <div className="space-y-4 text-sm">
+                <div className="flex justify-between"><span>AMC One</span><strong className="text-emerald-600">4.2</strong></div>
+                <div className="flex justify-between"><span>LenderX Valuations</span><strong className="text-emerald-600">3.6</strong></div>
+                <div className="flex justify-between"><span>Accurate Valuations</span><strong className="text-amber-500">3.2</strong></div>
+                <div className="flex justify-between"><span>Quick Appraisals</span><strong className="text-orange-500">2.4</strong></div>
+                <div className="flex justify-between"><span>ValuePro Network</span><strong className="text-red-500">1.8</strong></div>
+              </div>
             </div>
           </div>
         </section>
-
-        <section className="mt-20 rounded-3xl border border-zinc-800 bg-zinc-900 p-6">
-          <h2 className="mb-6 text-3xl font-bold">Analytics coming next</h2>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-2xl bg-zinc-950 p-5">
-              <p className="text-sm text-zinc-500">Chart</p>
-              <h3 className="text-xl font-semibold">Fee Trends</h3>
-            </div>
-
-            <div className="rounded-2xl bg-zinc-950 p-5">
-              <p className="text-sm text-zinc-500">Chart</p>
-              <h3 className="text-xl font-semibold">Fee by State</h3>
-            </div>
-
-            <div className="rounded-2xl bg-zinc-950 p-5">
-              <p className="text-sm text-zinc-500">Chart</p>
-              <h3 className="text-xl font-semibold">AMC Averages</h3>
-            </div>
-          </div>
-        </section>
-      </section>
+      </div>
     </main>
   );
 }
