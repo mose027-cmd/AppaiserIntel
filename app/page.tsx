@@ -1,3 +1,4 @@
+```tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -58,14 +59,37 @@ export default function Home() {
       .select("*")
       .order("created_at", { ascending: false });
 
-    const { data: billingData } = await supabase
-      .from("billing_records")
-      .select("*")
-      .order("order_date", { ascending: true })
-      .range(0, 5000);
+    let allBillingRecords: BillingRecord[] = [];
+    let from = 0;
+    const pageSize = 1000;
+
+    while (true) {
+      const { data, error } = await supabase
+        .from("billing_records")
+        .select("*")
+        .order("order_date", { ascending: true })
+        .range(from, from + pageSize - 1);
+
+      if (error) {
+        console.error(error);
+        break;
+      }
+
+      if (!data || data.length === 0) {
+        break;
+      }
+
+      allBillingRecords = [...allBillingRecords, ...data];
+
+      if (data.length < pageSize) {
+        break;
+      }
+
+      from += pageSize;
+    }
 
     setSubmissions(submissionData || []);
-    setBillingRecords(billingData || []);
+    setBillingRecords(allBillingRecords);
   }
 
   useEffect(() => {
@@ -129,46 +153,6 @@ export default function Home() {
     };
   }, [billingRecords]);
 
-  const topPayingClients = useMemo(() => {
-    const groups: Record<string, { count: number; total: number }> = {};
-
-    billingRecords.forEach((r) => {
-      const name = r.client_name || "Unknown";
-      if (!groups[name]) groups[name] = { count: 0, total: 0 };
-      groups[name].count += 1;
-      groups[name].total += Number(r.net_fee || r.gross_fee || 0);
-    });
-
-    return Object.entries(groups)
-      .map(([name, data]) => ({
-        name,
-        count: data.count,
-        avg: Math.round(data.total / data.count),
-      }))
-      .sort((a, b) => b.avg - a.avg)
-      .slice(0, 8);
-  }, [billingRecords]);
-
-  const mostActiveClients = useMemo(() => {
-    const groups: Record<string, { count: number; total: number }> = {};
-
-    billingRecords.forEach((r) => {
-      const name = r.client_name || "Unknown";
-      if (!groups[name]) groups[name] = { count: 0, total: 0 };
-      groups[name].count += 1;
-      groups[name].total += Number(r.net_fee || r.gross_fee || 0);
-    });
-
-    return Object.entries(groups)
-      .map(([name, data]) => ({
-        name,
-        count: data.count,
-        total: data.total,
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
-  }, [billingRecords]);
-
   const yearlyFeeTrend = useMemo(() => {
     const groups: Record<
       string,
@@ -211,231 +195,85 @@ export default function Home() {
       .sort((a, b) => Number(a.year) - Number(b.year));
   }, [billingRecords]);
 
-  const clientVolumeChart = mostActiveClients.map((item) => ({
-    name: item.name.length > 16 ? item.name.slice(0, 16) + "..." : item.name,
-    records: item.count,
-  }));
-
-  const avgSubmissionFee =
-    submissions.length > 0
-      ? Math.round(
-          submissions.reduce((sum, s) => sum + Number(s.fee || 0), 0) /
-            submissions.length
-        )
-      : 0;
-
   return (
     <main className="min-h-screen bg-slate-100 text-slate-900">
-      <div className="flex min-h-screen">
-        <aside className="hidden w-64 border-r border-slate-200 bg-white p-6 md:block">
-          <div className="mb-10 text-3xl font-bold text-blue-700">
-            AppraiserIntel
-          </div>
+      <div className="p-10">
+        <h1 className="text-6xl font-bold">Dashboard</h1>
 
-          <nav className="space-y-3">
-            {[
-              "Dashboard",
-              "Fee Search",
-              "Submit Data",
-              "Billing Intel",
-              "AMC Scorecard",
-              "Market Trends",
-              "Reports",
-            ].map((item, index) => (
-              <div
-                key={item}
-                className={
-                  index === 0
-                    ? "rounded-xl bg-blue-50 px-4 py-3 font-medium text-blue-700"
-                    : "cursor-pointer rounded-xl px-4 py-3 text-slate-700 transition hover:bg-slate-100"
-                }
-              >
-                {item}
-              </div>
-            ))}
-          </nav>
-        </aside>
+        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-4">
+          <StatCard title="COMMUNITY SUBMISSIONS" value={submissions.length} />
+          <StatCard title="BILLING RECORDS" value={billingStats.count} />
+          <StatCard
+            title="TOTAL GROSS FEES"
+            value={`$${Math.round(
+              billingStats.grossTotal
+            ).toLocaleString()}`}
+          />
+          <StatCard
+            title="TOTAL TECH FEES"
+            value={`$${Math.round(
+              billingStats.techTotal
+            ).toLocaleString()}`}
+          />
+        </div>
 
-        <section className="flex-1 p-10">
-          <h1 className="text-6xl font-bold tracking-tight">Dashboard</h1>
+        <div className="mt-10 grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <ChartCard title="Average Fee Trend by Year">
+            <ResponsiveContainer width="100%" height={320}>
+              <LineChart data={yearlyFeeTrend}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="year" />
+                <YAxis />
+                <Tooltip />
+                <Line
+                  type="monotone"
+                  dataKey="avgGross"
+                  strokeWidth={3}
+                  name="Avg Gross Fee"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="avgNet"
+                  strokeWidth={3}
+                  name="Avg Net Fee"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartCard>
 
-          <p className="mt-2 text-2xl text-slate-600">
-            Real fee data. Real market insight. Built for appraisers.
-          </p>
-
-          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-4">
-            <StatCard title="COMMUNITY SUBMISSIONS" value={submissions.length} />
-            <StatCard title="AVG COMMUNITY FEE" value={`$${avgSubmissionFee}`} />
-            <StatCard title="BILLING RECORDS" value={billingStats.count} />
-            <StatCard
-              title="TOTAL GROSS FEES"
-              value={`$${Math.round(billingStats.grossTotal).toLocaleString()}`}
-            />
-          </div>
-
-          <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 className="mb-6 text-4xl font-bold">Billing Intelligence</h2>
-
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-              <StatCard title="AVG GROSS FEE" value={`$${billingStats.avgGross}`} />
-              <StatCard title="AVG TECH FEE" value={`$${billingStats.avgTech}`} />
-              <StatCard title="AVG NET FEE" value={`$${billingStats.avgNet}`} />
-              <StatCard
-                title="TOTAL TECH FEES"
-                value={`$${Math.round(billingStats.techTotal).toLocaleString()}`}
-              />
-            </div>
-          </div>
-
-          <div className="mt-10 grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <ChartCard title="Average Fee Trend by Year">
-              <ResponsiveContainer width="100%" height={320}>
-                <LineChart data={yearlyFeeTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="avgGross"
-                    strokeWidth={3}
-                    name="Avg Gross Fee"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="avgNet"
-                    strokeWidth={3}
-                    name="Avg Net Fee"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartCard>
-
-            <ChartCard title="Most Active Clients by Volume">
-              <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={clientVolumeChart}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="records" name="Records" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </div>
-
-          <div className="mt-10 grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <ChartCard title="Gross Fees by Year">
-              <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={yearlyFeeTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="grossFees" name="Gross Fees" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
-
-            <ChartCard title="Tech Fees Eaten by Year">
-              <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={yearlyFeeTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="techFees" name="Tech Fees" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </div>
-
-          <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Leaderboard
-              title="Top Paying Clients by Avg Net Fee"
-              subtitle="Ranked by average net fee per record"
-              items={topPayingClients}
-              valueLabel="avg"
-            />
-
-            <Leaderboard
-              title="Most Active Clients"
-              subtitle="Ranked by number of billing records"
-              items={mostActiveClients}
-              valueLabel="count"
-            />
-          </div>
-
-          <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 className="mb-8 text-5xl font-bold">
-              Anonymous Fee Submission
-            </h2>
-
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <Input placeholder="City" value={city} setValue={setCity} />
-              <Input placeholder="State" value={state} setValue={setState} />
-              <Input
-                placeholder="Form Type"
-                value={formType}
-                setValue={setFormType}
-              />
-              <Input
-                placeholder="Loan Type"
-                value={loanType}
-                setValue={setLoanType}
-              />
-              <Input placeholder="Fee" value={fee} setValue={setFee} />
-              <Input
-                placeholder="Turn Time"
-                value={turnTime}
-                setValue={setTurnTime}
-              />
-            </div>
-
-            <button
-              onClick={submitData}
-              className="mt-6 rounded-2xl bg-blue-700 px-8 py-4 text-xl font-semibold text-white transition hover:bg-blue-800"
-            >
-              Submit Anonymous Data
-            </button>
-
-            {message && (
-              <div className="mt-4 text-lg text-slate-600">{message}</div>
-            )}
-          </div>
-        </section>
+          <ChartCard title="Gross Fees by Year">
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={yearlyFeeTrend}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="year" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="grossFees" name="Gross Fees" />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </div>
       </div>
     </main>
   );
 }
 
-function Input({
-  placeholder,
+function StatCard({
+  title,
   value,
-  setValue,
 }: {
-  placeholder: string;
-  value: string;
-  setValue: (value: string) => void;
+  title: string;
+  value: string | number;
 }) {
-  return (
-    <input
-      placeholder={placeholder}
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      className="rounded-2xl border border-slate-300 px-4 py-4 text-xl"
-    />
-  );
-}
-
-function StatCard({ title, value }: { title: string; value: any }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="text-sm font-medium uppercase tracking-wide text-slate-500">
         {title}
       </div>
 
-      <div className="mt-4 text-5xl font-bold text-slate-900">{value}</div>
+      <div className="mt-4 text-5xl font-bold text-slate-900">
+        {value}
+      </div>
     </div>
   );
 }
@@ -454,43 +292,4 @@ function ChartCard({
     </div>
   );
 }
-
-function Leaderboard({
-  title,
-  subtitle,
-  items,
-  valueLabel,
-}: {
-  title: string;
-  subtitle: string;
-  items: any[];
-  valueLabel: "avg" | "count";
-}) {
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-      <h3 className="text-4xl font-bold">{title}</h3>
-      <p className="mt-2 text-slate-500">{subtitle}</p>
-
-      <div className="mt-6 space-y-4">
-        {items.map((item, index) => (
-          <div
-            key={item.name}
-            className="flex items-center justify-between rounded-2xl border border-slate-200 p-5"
-          >
-            <div>
-              <div className="text-sm text-slate-400">#{index + 1}</div>
-              <div className="text-2xl font-semibold">{item.name}</div>
-              <div className="text-slate-500">{item.count} records</div>
-            </div>
-
-            <div className="text-4xl font-bold text-blue-700">
-              {valueLabel === "avg"
-                ? `$${item.avg}`
-                : item.count.toLocaleString()}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+```
