@@ -61,7 +61,8 @@ export default function Home() {
     const { data: billingData } = await supabase
       .from("billing_records")
       .select("*")
-      .order("order_date", { ascending: true });
+      .order("order_date", { ascending: true })
+      .range(0, 5000);
 
     setSubmissions(submissionData || []);
     setBillingRecords(billingData || []);
@@ -177,10 +178,14 @@ export default function Home() {
     billingRecords.forEach((record) => {
       if (!record.order_date) return;
 
-      const year = new Date(record.order_date).getFullYear().toString();
+      const year = new Date(record.order_date).getFullYear();
 
-      if (!groups[year]) {
-        groups[year] = {
+      if (!year || year < 1990 || year > 2100) return;
+
+      const key = String(year);
+
+      if (!groups[key]) {
+        groups[key] = {
           gross: 0,
           net: 0,
           tech: 0,
@@ -188,10 +193,10 @@ export default function Home() {
         };
       }
 
-      groups[year].gross += Number(record.gross_fee || 0);
-      groups[year].net += Number(record.net_fee || 0);
-      groups[year].tech += Number(record.tech_fee || 0);
-      groups[year].count += 1;
+      groups[key].gross += Number(record.gross_fee || 0);
+      groups[key].net += Number(record.net_fee || 0);
+      groups[key].tech += Number(record.tech_fee || 0);
+      groups[key].count += 1;
     });
 
     return Object.entries(groups)
