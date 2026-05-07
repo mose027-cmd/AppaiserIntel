@@ -18,6 +18,26 @@ type Submission = {
   turn_time: string;
 };
 
+type BillingRecord = {
+  id: number;
+  order_date: string | null;
+  client_name: string | null;
+  lender_name: string | null;
+  amc_name: string | null;
+  client_type: string | null;
+  city: string | null;
+  state: string | null;
+  form_type: string | null;
+  loan_type: string | null;
+  gross_fee: number | null;
+  tech_fee: number | null;
+  net_fee: number | null;
+  turn_time_days: number | null;
+  revision_count: number | null;
+  status: string | null;
+  notes: string | null;
+};
+
 export default function Home() {
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
@@ -28,25 +48,30 @@ export default function Home() {
   const [message, setMessage] = useState("");
 
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [billingRecords, setBillingRecords] = useState<BillingRecord[]>([]);
 
   const [search, setSearch] = useState("");
   const [loanFilter, setLoanFilter] = useState("All");
   const [formFilter, setFormFilter] = useState("All");
   const [sortOrder, setSortOrder] = useState("Newest");
 
-  async function loadSubmissions() {
-    const { data, error } = await supabase
+  async function loadData() {
+    const { data: submissionData } = await supabase
       .from("submissions")
       .select("*")
       .order("created_at", { ascending: false });
 
-    if (!error && data) {
-      setSubmissions(data);
-    }
+    const { data: billingData } = await supabase
+      .from("billing_records")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    setSubmissions(submissionData || []);
+    setBillingRecords(billingData || []);
   }
 
   useEffect(() => {
-    loadSubmissions();
+    loadData();
   }, []);
 
   async function submitData() {
@@ -68,15 +93,13 @@ export default function Home() {
       console.error(error);
     } else {
       setMessage("Submitted successfully.");
-
       setCity("");
       setState("");
       setFormType("");
       setLoanType("");
       setFee("");
       setTurnTime("");
-
-      loadSubmissions();
+      loadData();
     }
   }
 
@@ -121,41 +144,69 @@ export default function Home() {
       ? Math.max(...filteredSubmissions.map((s) => s.fee))
       : 0;
 
-  const activeMarkets = new Set(
-    filteredSubmissions.map((s) => s.city)
-  ).size;
+  const activeMarkets = new Set(filteredSubmissions.map((s) => s.city)).size;
 
-  const loanTypeStats = Object.entries(
-    filteredSubmissions.reduce((acc: any, curr) => {
-      if (!acc[curr.loan_type]) {
-        acc[curr.loan_type] = {
-          count: 0,
-          total: 0,
-        };
-      }
+  const avgNetFee =
+    billingRecords.length > 0
+      ? Math.round(
+          billingRecords.reduce((sum, item) => sum + Number(item.net_fee || 0), 0) /
+            billingRecords.length
+        )
+      : 0;
 
-      acc[curr.loan_type].count += 1;
-      acc[curr.loan_type].total += curr.fee;
+  const avgTechFee =
+    billingRecords.length > 0
+      ? Math.round(
+          billingRecords.reduce((sum, item) => sum + Number(item.tech_fee || 0), 0) /
+            billingRecords.length
+        )
+      : 0;
 
-      return acc;
-    }, {})
+  const totalGrossFees = billingRecords.reduce(
+    (sum, item) => sum + Number(item.gross_fee || 0),
+    0
   );
 
-  const formTypeStats = Object.entries(
-    filteredSubmissions.reduce((acc: any, curr) => {
-      if (!acc[curr.form_type]) {
-        acc[curr.form_type] = {
-          count: 0,
-          total: 0,
-        };
-      }
+  const lenderStats = useMemo(() => {
+    const groups: Record<string, { count: number; total: number }> = {};
 
-      acc[curr.form_type].count += 1;
-      acc[curr.form_type].total += curr.fee;
+    billingRecords.forEach((record) => {
+      const name = record.lender_name || record.client_name || "Unknown";
+      if (!groups[name]) groups[name] = { count: 0, total: 0 };
+      groups[name].count += 1;
+      groups[name].total += Number(record.net_fee || record.gross_fee || 0);
+    });
 
-      return acc;
-    }, {})
-  );
+    return Object.entries(groups)
+      .map(([name, data]) => ({
+        name,
+        count: data.count,
+        avg: Math.round(data.total / data.count),
+      }))
+      .sort((a, b) => b.avg - a.avg)
+      .slice(0, 5);
+  }, [billingRecords]);
+
+  const amcStats = useMemo(() => {
+    const groups: Record<string, { count: number; total: number }> = {};
+
+    billingRecords.forEach((record) => {
+      const name = record.amc_name || "Unknown";
+      if (!groups[name]) groups[name] = { count: 0, total: 0 };
+      groups[name].count += 1;
+      groups[name].total += Number(record.net_fee || record.gross_fee || 0);
+    });
+
+    return Object.entries(groups)
+      .map(([name, data]) => ({
+        name,
+        count: data.count,
+        avg: Math.round(data.total / data.count),
+      }))
+      .filter((item) => item.name !== "Unknown")
+      .sort((a, b) => b.avg - a.avg)
+      .slice(0, 5);
+  }, [billingRecords]);
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-900">
@@ -173,6 +224,7 @@ export default function Home() {
             {[
               "Fee Search",
               "Submit Data",
+              "Billing Intel",
               "AMC Scorecard",
               "Market Trends",
               "Reports",
@@ -188,37 +240,40 @@ export default function Home() {
         </aside>
 
         <section className="flex-1 p-10">
-          <h1 className="text-6xl font-bold tracking-tight">
-            Dashboard
-          </h1>
+          <h1 className="text-6xl font-bold tracking-tight">Dashboard</h1>
 
           <p className="mt-2 text-2xl text-slate-600">
             Real fee data. Real market insight. Built for appraisers.
           </p>
 
           <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-4">
-            <StatCard
-              title="MATCHING SUBMISSIONS"
-              value={filteredSubmissions.length}
-            />
-
+            <StatCard title="MATCHING SUBMISSIONS" value={filteredSubmissions.length} />
             <StatCard title="AVG FEE" value={`$${avgFee}`} />
-
-            <StatCard
-              title="ACTIVE MARKETS"
-              value={activeMarkets}
-            />
-
-            <StatCard
-              title="HIGHEST FEE"
-              value={`$${highestFee}`}
-            />
+            <StatCard title="ACTIVE MARKETS" value={activeMarkets} />
+            <StatCard title="HIGHEST FEE" value={`$${highestFee}`} />
           </div>
 
           <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 className="mb-6 text-4xl font-bold">
-              Fee Search
-            </h2>
+            <h2 className="mb-6 text-4xl font-bold">Billing Intelligence</h2>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+              <StatCard title="IMPORTED RECORDS" value={billingRecords.length} />
+              <StatCard title="AVG NET FEE" value={`$${avgNetFee}`} />
+              <StatCard title="AVG TECH FEE" value={`$${avgTechFee}`} />
+              <StatCard title="GROSS FEES" value={`$${totalGrossFees.toLocaleString()}`} />
+            </div>
+
+            {billingRecords.length === 0 && (
+              <div className="mt-6 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-slate-600">
+                Historical billing data has not been imported yet. Once your Excel file is uploaded,
+                this section will populate lender rankings, AMC fee trends, tech fees, and historical
+                revenue intelligence.
+              </div>
+            )}
+          </div>
+
+          <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+            <h2 className="mb-6 text-4xl font-bold">Fee Search</h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <input
@@ -237,6 +292,7 @@ export default function Home() {
                 <option>Conventional</option>
                 <option>FHA</option>
                 <option>VA</option>
+                <option>USDA</option>
               </select>
 
               <select
@@ -248,6 +304,7 @@ export default function Home() {
                 <option>1004 URAR</option>
                 <option>1073 Condo</option>
                 <option>1025 Multi-Family</option>
+                <option>2055 Exterior</option>
               </select>
 
               <select
@@ -263,52 +320,15 @@ export default function Home() {
           </div>
 
           <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 className="mb-8 text-5xl font-bold">
-              Anonymous Fee Submission
-            </h2>
+            <h2 className="mb-8 text-5xl font-bold">Anonymous Fee Submission</h2>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <input
-                placeholder="City"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className="rounded-2xl border border-slate-300 px-4 py-4 text-xl"
-              />
-
-              <input
-                placeholder="State"
-                value={state}
-                onChange={(e) => setState(e.target.value)}
-                className="rounded-2xl border border-slate-300 px-4 py-4 text-xl"
-              />
-
-              <input
-                placeholder="Form Type"
-                value={formType}
-                onChange={(e) => setFormType(e.target.value)}
-                className="rounded-2xl border border-slate-300 px-4 py-4 text-xl"
-              />
-
-              <input
-                placeholder="Loan Type"
-                value={loanType}
-                onChange={(e) => setLoanType(e.target.value)}
-                className="rounded-2xl border border-slate-300 px-4 py-4 text-xl"
-              />
-
-              <input
-                placeholder="Fee"
-                value={fee}
-                onChange={(e) => setFee(e.target.value)}
-                className="rounded-2xl border border-slate-300 px-4 py-4 text-xl"
-              />
-
-              <input
-                placeholder="Turn Time"
-                value={turnTime}
-                onChange={(e) => setTurnTime(e.target.value)}
-                className="rounded-2xl border border-slate-300 px-4 py-4 text-xl"
-              />
+              <input placeholder="City" value={city} onChange={(e) => setCity(e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-4 text-xl" />
+              <input placeholder="State" value={state} onChange={(e) => setState(e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-4 text-xl" />
+              <input placeholder="Form Type" value={formType} onChange={(e) => setFormType(e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-4 text-xl" />
+              <input placeholder="Loan Type" value={loanType} onChange={(e) => setLoanType(e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-4 text-xl" />
+              <input placeholder="Fee" value={fee} onChange={(e) => setFee(e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-4 text-xl" />
+              <input placeholder="Turn Time" value={turnTime} onChange={(e) => setTurnTime(e.target.value)} className="rounded-2xl border border-slate-300 px-4 py-4 text-xl" />
             </div>
 
             <button
@@ -318,36 +338,20 @@ export default function Home() {
               Submit Anonymous Data
             </button>
 
-            {message && (
-              <div className="mt-4 text-lg text-slate-600">
-                {message}
-              </div>
-            )}
+            {message && <div className="mt-4 text-lg text-slate-600">{message}</div>}
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-            <AnalyticsCard
-              title="Avg Fee by Loan Type"
-              stats={loanTypeStats}
-            />
-
-            <AnalyticsCard
-              title="Avg Fee by Form Type"
-              stats={formTypeStats}
-            />
+            <Leaderboard title="Top Lenders by Avg Fee" items={lenderStats} />
+            <Leaderboard title="Top AMCs by Avg Fee" items={amcStats} />
           </div>
 
           <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 className="mb-8 text-5xl font-bold">
-              Recent Submissions
-            </h2>
+            <h2 className="mb-8 text-5xl font-bold">Recent Submissions</h2>
 
             <div className="space-y-4">
               {filteredSubmissions.map((s) => (
-                <div
-                  key={s.id}
-                  className="rounded-2xl border border-slate-200 p-6"
-                >
+                <div key={s.id} className="rounded-2xl border border-slate-200 p-6">
                   <div className="text-3xl font-semibold">
                     {s.city}, {s.state}
                   </div>
@@ -369,58 +373,51 @@ export default function Home() {
   );
 }
 
-function StatCard({
-  title,
-  value,
-}: {
-  title: string;
-  value: any;
-}) {
+function StatCard({ title, value }: { title: string; value: any }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="text-sm font-medium uppercase tracking-wide text-slate-500">
         {title}
       </div>
-
-      <div className="mt-4 text-6xl font-bold text-slate-900">
-        {value}
-      </div>
+      <div className="mt-4 text-5xl font-bold text-slate-900">{value}</div>
     </div>
   );
 }
 
-function AnalyticsCard({
+function Leaderboard({
   title,
-  stats,
+  items,
 }: {
   title: string;
-  stats: any[];
+  items: { name: string; count: number; avg: number }[];
 }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
       <h3 className="mb-6 text-4xl font-bold">{title}</h3>
 
-      <div className="space-y-4">
-        {stats.map(([name, data]: any) => (
-          <div
-            key={name}
-            className="flex items-center justify-between rounded-2xl border border-slate-200 p-5"
-          >
-            <div>
-              <div className="text-2xl font-semibold">{name}</div>
+      {items.length === 0 ? (
+        <p className="text-slate-500">
+          No billing records imported yet.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {items.map((item) => (
+            <div
+              key={item.name}
+              className="flex items-center justify-between rounded-2xl border border-slate-200 p-5"
+            >
+              <div>
+                <div className="text-2xl font-semibold">{item.name}</div>
+                <div className="text-slate-500">{item.count} records</div>
+              </div>
 
-              <div className="text-slate-500">
-                {data.count} submissions
+              <div className="text-4xl font-bold text-blue-700">
+                ${item.avg}
               </div>
             </div>
-
-            <div className="text-4xl font-bold text-blue-700">
-              $
-              {Math.round(data.total / data.count)}
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
