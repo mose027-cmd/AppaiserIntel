@@ -346,12 +346,18 @@ async function handleSubmitRecord() {
                 onChange={(e) => setFormData({ ...formData, techFee: e.target.value })}
               />
 
-              <input
-                placeholder="Net Fee"
-                className="rounded-xl border border-slate-300 px-4 py-3"
-                value={formData.netFee}
-                onChange={(e) => setFormData({ ...formData, netFee: e.target.value })}
-              />
+<div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+  <p className="text-sm text-slate-500">
+    Net Fee
+  </p>
+
+  <p className="mt-1 text-lg font-semibold text-slate-900">
+    {money(
+      (Number(formData.grossFee) || 0) -
+      (Number(formData.techFee) || 0)
+    )}
+  </p>
+</div>
 
               <input
                 placeholder="Turn Time (Days)"
