@@ -253,14 +253,20 @@ export default function Home() {
   <option value="Complex">Complex</option>
 </select>
 
-              <input
-                placeholder="Value Bucket"
-                className="rounded-xl border border-slate-300 px-4 py-3"
-                value={formData.valueBucket}
-                onChange={(e) =>
-                  setFormData({ ...formData, valueBucket: e.target.value })
-                }
-              />
+<select
+  className="rounded-xl border border-slate-300 px-4 py-3"
+  value={formData.valueBucket}
+  onChange={(e) =>
+    setFormData({ ...formData, valueBucket: e.target.value })
+  }
+>
+  <option value="">Select Value Bucket</option>
+  <option value="<250K">&lt;250K</option>
+  <option value="250K-500K">250K-500K</option>
+  <option value="500K-750K">500K-750K</option>
+  <option value="750K-1M">750K-1M</option>
+  <option value="1M+">1M+</option>
+</select>
 
               <input
                 placeholder="Gross Fee"
