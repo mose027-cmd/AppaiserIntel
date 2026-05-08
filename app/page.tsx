@@ -113,16 +113,17 @@ if (error) {
 } else {
 setSuccessMessage("Record submitted successfully.");
 
-  setFormData({
-    city: "",
-    state: "",
-    assignmentType: "",
-    valueBucket: "",
-    grossFee: "",
-    techFee: "",
-    netFee: "",
-    turnTime: "",
-  });
+setFormData({
+  city: "",
+  state: "",
+  amc: "",
+  assignmentType: "",
+  valueBucket: "",
+  grossFee: "",
+  techFee: "",
+  netFee: "",
+  turnTime: "",
+});
 setTimeout(() => {
   setSuccessMessage("");
 }, 3000);
