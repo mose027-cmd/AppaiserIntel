@@ -65,6 +65,7 @@ const [successMessage, setSuccessMessage] = useState("");
   const [formData, setFormData] = useState({
     city: "",
     state: "",
+    amc: "",
     assignmentType: "",
     valueBucket: "",
     grossFee: "",
