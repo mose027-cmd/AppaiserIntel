@@ -125,7 +125,6 @@ if (error) {
 
   setShowForm(false);
 
-  loadRecords();
 }
 
   setRecords((current) => [
