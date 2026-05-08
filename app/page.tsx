@@ -73,6 +73,16 @@ export default function Home() {
     turnTime: "",
   });
 async function handleSubmitRecord() {
+if (
+  !formData.city ||
+  !formData.state ||
+  !formData.assignmentType ||
+  !formData.valueBucket ||
+  !formData.grossFee
+) {
+  alert("Please complete City, State, Assignment Type, Value Bucket, and Gross Fee.");
+  return;
+}
   const grossFee = Number(formData.grossFee) || 0;
   const techFee = Number(formData.techFee) || 0;
   const netFee = formData.netFee ? Number(formData.netFee) : grossFee - techFee;
