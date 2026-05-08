@@ -39,7 +39,6 @@ type BillingRecord = {
 
 function money(value: number) {
   if (!Number.isFinite(value)) return "$0";
-
   return value.toLocaleString("en-US", {
     style: "currency",
     currency: "USD",
@@ -49,9 +48,7 @@ function money(value: number) {
 
 function avg(values: number[]) {
   const valid = values.filter((v) => Number.isFinite(v));
-
   if (!valid.length) return 0;
-
   return valid.reduce((a, b) => a + b, 0) / valid.length;
 }
 
@@ -62,23 +59,23 @@ export default function Home() {
   const [stateFilter, setStateFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const [valueFilter, setValueFilter] = useState("All");
-const [showForm, setShowForm] = useState(false);
 
-const [formData, setFormData] = useState({
-  city: "",
-  state: "",
-  assignmentType: "",
-  valueBucket: "",
-  grossFee: "",
-  techFee: "",
-  netFee: "",
-  turnTime: "",
-});
+  const [showForm, setShowForm] = useState(false);
+
+  const [formData, setFormData] = useState({
+    city: "",
+    state: "",
+    assignmentType: "",
+    valueBucket: "",
+    grossFee: "",
+    techFee: "",
+    netFee: "",
+    turnTime: "",
+  });
+
   useEffect(() => {
     async function loadRecords() {
-      const { data, error } = await supabase
-        .from("billing_records")
-        .select("*");
+      const { data, error } = await supabase.from("billing_records").select("*");
 
       if (error) {
         console.error(error);
@@ -93,25 +90,14 @@ const [formData, setFormData] = useState({
   }, []);
 
   const states = useMemo(
-    () => [
-      "All",
-      ...Array.from(
-        new Set(records.map((r) => r.State).filter(Boolean))
-      ),
-    ],
+    () => ["All", ...Array.from(new Set(records.map((r) => r.State).filter(Boolean)))],
     [records]
   );
 
   const assignmentTypes = useMemo(
     () => [
       "All",
-      ...Array.from(
-        new Set(
-          records
-            .map((r) => r["Assignment Type"])
-            .filter(Boolean)
-        )
-      ),
+      ...Array.from(new Set(records.map((r) => r["Assignment Type"]).filter(Boolean))),
     ],
     [records]
   );
@@ -119,139 +105,66 @@ const [formData, setFormData] = useState({
   const valueBuckets = useMemo(
     () => [
       "All",
-      ...Array.from(
-        new Set(
-          records
-            .map((r) => r["Value Bucket"])
-            .filter(Boolean)
-        )
-      ),
+      ...Array.from(new Set(records.map((r) => r["Value Bucket"]).filter(Boolean))),
     ],
     [records]
   );
 
   const filteredRecords = useMemo(() => {
     return records.filter((r) => {
-      const stateMatch =
-        stateFilter === "All" || r.State === stateFilter;
-
-      const typeMatch =
-        typeFilter === "All" ||
-        r["Assignment Type"] === typeFilter;
-
-      const valueMatch =
-        valueFilter === "All" ||
-        r["Value Bucket"] === valueFilter;
-
-      return stateMatch && typeMatch && valueMatch;
+      return (
+        (stateFilter === "All" || r.State === stateFilter) &&
+        (typeFilter === "All" || r["Assignment Type"] === typeFilter) &&
+        (valueFilter === "All" || r["Value Bucket"] === valueFilter)
+      );
     });
   }, [records, stateFilter, typeFilter, valueFilter]);
 
-  const avgGrossFee = avg(
-    filteredRecords.map((r) =>
-      Number(r["Fee Total"])
-    )
-  );
-
-  const avgTechFee = avg(
-    filteredRecords.map((r) =>
-      Number(r["Technology Fees"])
-    )
-  );
-
-  const avgNetFee = avg(
-    filteredRecords.map((r) =>
-      Number(r["Net Fee"])
-    )
-  );
-
-  const avgTurnTime = avg(
-    filteredRecords.map((r) =>
-      Number(r["Turn Time (Days)"])
-    )
-  );
+  const avgGrossFee = avg(filteredRecords.map((r) => Number(r["Fee Total"])));
+  const avgTechFee = avg(filteredRecords.map((r) => Number(r["Technology Fees"])));
+  const avgNetFee = avg(filteredRecords.map((r) => Number(r["Net Fee"])));
+  const avgTurnTime = avg(filteredRecords.map((r) => Number(r["Turn Time (Days)"])));
 
   const mostCommonType = useMemo(() => {
     const counts: Record<string, number> = {};
 
     filteredRecords.forEach((r) => {
-      const type =
-        r["Assignment Type"] || "Unknown";
-
+      const type = r["Assignment Type"] || "Unknown";
       counts[type] = (counts[type] || 0) + 1;
     });
 
-    return (
-      Object.entries(counts).sort(
-        (a, b) => b[1] - a[1]
-      )[0]?.[0] || "N/A"
-    );
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
   }, [filteredRecords]);
 
   const feeByValueBucket = useMemo(() => {
-    const grouped: Record<
-      string,
-      BillingRecord[]
-    > = {};
+    const grouped: Record<string, BillingRecord[]> = {};
 
     filteredRecords.forEach((r) => {
-      const bucket =
-        r["Value Bucket"] || "Unknown";
-
-      grouped[bucket] =
-        grouped[bucket] || [];
-
+      const bucket = r["Value Bucket"] || "Unknown";
+      grouped[bucket] = grouped[bucket] || [];
       grouped[bucket].push(r);
     });
 
-    return Object.entries(grouped).map(
-      ([bucket, items]) => ({
-        bucket,
-        avgGrossFee: Math.round(
-          avg(
-            items.map((r) =>
-              Number(r["Fee Total"])
-            )
-          )
-        ),
-        avgNetFee: Math.round(
-          avg(
-            items.map((r) =>
-              Number(r["Net Fee"])
-            )
-          )
-        ),
-      })
-    );
+    return Object.entries(grouped).map(([bucket, items]) => ({
+      bucket,
+      avgGrossFee: Math.round(avg(items.map((r) => Number(r["Fee Total"])))),
+      avgNetFee: Math.round(avg(items.map((r) => Number(r["Net Fee"])))),
+    }));
   }, [filteredRecords]);
 
   const feeByType = useMemo(() => {
-    const grouped: Record<
-      string,
-      BillingRecord[]
-    > = {};
+    const grouped: Record<string, BillingRecord[]> = {};
 
     filteredRecords.forEach((r) => {
-      const type =
-        r["Assignment Type"] || "Unknown";
-
+      const type = r["Assignment Type"] || "Unknown";
       grouped[type] = grouped[type] || [];
-
       grouped[type].push(r);
     });
 
-    return Object.entries(grouped).map(
-      ([type, items]) => ({
-        type,
-        avgFee: Math.round(
-          avg(
-            items.map((r) =>
-              Number(r["Fee Total"])
-            )
-          )
-        ),
-      })
-    );
+    return Object.entries(grouped).map(([type, items]) => ({
+      type,
+      avgFee: Math.round(avg(items.map((r) => Number(r["Fee Total"])))),
+    }));
   }, [filteredRecords]);
 
   return (
@@ -267,74 +180,140 @@ const [formData, setFormData] = useState({
           </h1>
 
           <p className="mt-4 max-w-3xl text-slate-600">
-            Benchmark appraisal fees,
-            technology fees, net
-            compensation, and turn times
-            ahead of the UAD 3.6 transition.
+            Benchmark appraisal fees, technology fees, net compensation, and turn times ahead
+            of the UAD 3.6 transition.
           </p>
         </div>
-<div className="mb-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-    <div>
-      <h2 className="text-2xl font-bold">
-        Submit Appraisal Data
-      </h2>
 
-      <p className="mt-2 text-slate-600">
-        Contribute anonymous fee and turn-time data to improve appraisal market transparency ahead of UAD 3.6.
-      </p>
-    </div>
+        <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">Submit Appraisal Data</h2>
 
-  <button
-  onClick={() => setShowForm(true)}
-  className="rounded-2xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700"
->
-  Submit Data
-</button> px-6 py-3 font-medium text-white transition hover:bg-blue-700">
-      Submit Data
-    </button>
-  </div>
-</div>
+              <p className="mt-2 text-slate-600">
+                Contribute anonymous fee and turn-time data to improve appraisal market
+                transparency ahead of UAD 3.6.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowForm(true)}
+              className="rounded-2xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700"
+            >
+              Submit Data
+            </button>
+          </div>
+        </div>
+
+        {showForm && (
+          <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Submit Appraisal Record</h2>
+
+              <button
+                onClick={() => setShowForm(false)}
+                className="text-slate-500 hover:text-slate-700"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <input
+                placeholder="City"
+                className="rounded-xl border border-slate-300 px-4 py-3"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              />
+
+              <input
+                placeholder="State"
+                className="rounded-xl border border-slate-300 px-4 py-3"
+                value={formData.state}
+                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+              />
+
+              <input
+                placeholder="Assignment Type"
+                className="rounded-xl border border-slate-300 px-4 py-3"
+                value={formData.assignmentType}
+                onChange={(e) =>
+                  setFormData({ ...formData, assignmentType: e.target.value })
+                }
+              />
+
+              <input
+                placeholder="Value Bucket"
+                className="rounded-xl border border-slate-300 px-4 py-3"
+                value={formData.valueBucket}
+                onChange={(e) =>
+                  setFormData({ ...formData, valueBucket: e.target.value })
+                }
+              />
+
+              <input
+                placeholder="Gross Fee"
+                className="rounded-xl border border-slate-300 px-4 py-3"
+                value={formData.grossFee}
+                onChange={(e) => setFormData({ ...formData, grossFee: e.target.value })}
+              />
+
+              <input
+                placeholder="Tech Fee"
+                className="rounded-xl border border-slate-300 px-4 py-3"
+                value={formData.techFee}
+                onChange={(e) => setFormData({ ...formData, techFee: e.target.value })}
+              />
+
+              <input
+                placeholder="Net Fee"
+                className="rounded-xl border border-slate-300 px-4 py-3"
+                value={formData.netFee}
+                onChange={(e) => setFormData({ ...formData, netFee: e.target.value })}
+              />
+
+              <input
+                placeholder="Turn Time (Days)"
+                className="rounded-xl border border-slate-300 px-4 py-3"
+                value={formData.turnTime}
+                onChange={(e) => setFormData({ ...formData, turnTime: e.target.value })}
+              />
+            </div>
+
+            <button className="mt-6 rounded-2xl bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700">
+              Submit Record
+            </button>
+          </div>
+        )}
+
         <div className="mb-6 grid gap-4 md:grid-cols-3">
           <select
             className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
             value={stateFilter}
-            onChange={(e) =>
-              setStateFilter(e.target.value)
-            }
+            onChange={(e) => setStateFilter(e.target.value)}
           >
             {states.map((state) => (
-              <option key={state}>
-                {state}
-              </option>
+              <option key={state}>{state}</option>
             ))}
           </select>
 
           <select
             className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
             value={typeFilter}
-            onChange={(e) =>
-              setTypeFilter(e.target.value)
-            }
+            onChange={(e) => setTypeFilter(e.target.value)}
           >
             {assignmentTypes.map((type) => (
-              <option key={type}>
-                {type}
-              </option>
+              <option key={type}>{type}</option>
             ))}
           </select>
 
           <select
             className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
             value={valueFilter}
-            onChange={(e) =>
-              setValueFilter(e.target.value)
-            }
+            onChange={(e) => setValueFilter(e.target.value)}
           >
             {valueBuckets.map((bucket) => (
-              <option key={bucket}>
-                {bucket}
-              </option>
+              <option key={bucket}>{bucket}</option>
             ))}
           </select>
         </div>
@@ -346,67 +325,27 @@ const [formData, setFormData] = useState({
         ) : (
           <>
             <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-              <StatCard
-                title="Records"
-                value={filteredRecords.length.toString()}
-              />
-
-              <StatCard
-                title="Avg Gross Fee"
-                value={money(avgGrossFee)}
-              />
-
-              <StatCard
-                title="Avg Tech Fee"
-                value={money(avgTechFee)}
-              />
-
-              <StatCard
-                title="Avg Net Fee"
-                value={money(avgNetFee)}
-              />
-
-              <StatCard
-                title="Avg Turn Time"
-                value={`${avgTurnTime.toFixed(
-                  1
-                )} days`}
-              />
-
-              <StatCard
-                title="Top Form"
-                value={mostCommonType}
-              />
+              <StatCard title="Records" value={filteredRecords.length.toString()} />
+              <StatCard title="Avg Gross Fee" value={money(avgGrossFee)} />
+              <StatCard title="Avg Tech Fee" value={money(avgTechFee)} />
+              <StatCard title="Avg Net Fee" value={money(avgNetFee)} />
+              <StatCard title="Avg Turn Time" value={`${avgTurnTime.toFixed(1)} days`} />
+              <StatCard title="Top Form" value={mostCommonType} />
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold">
-                  Average Fee by Value Bucket
-                </h2>
+                <h2 className="mb-4 text-lg font-semibold">Average Fee by Value Bucket</h2>
 
                 <div className="h-80">
-                  <ResponsiveContainer
-                    width="100%"
-                    height="100%"
-                  >
-                    <BarChart
-                      data={feeByValueBucket}
-                    >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={feeByValueBucket}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="bucket" />
                       <YAxis />
                       <Tooltip />
-
-                      <Bar
-                        dataKey="avgGrossFee"
-                        name="Avg Gross Fee"
-                      />
-
-                      <Bar
-                        dataKey="avgNetFee"
-                        name="Avg Net Fee"
-                      />
+                      <Bar dataKey="avgGrossFee" name="Avg Gross Fee" />
+                      <Bar dataKey="avgNetFee" name="Avg Net Fee" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -418,16 +357,12 @@ const [formData, setFormData] = useState({
                 </h2>
 
                 <div className="h-80">
-                  <ResponsiveContainer
-                    width="100%"
-                    height="100%"
-                  >
+                  <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={feeByType}>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="type" />
                       <YAxis />
                       <Tooltip />
-
                       <Line
                         type="monotone"
                         dataKey="avgFee"
@@ -442,118 +377,40 @@ const [formData, setFormData] = useState({
             </div>
 
             <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">
-                Recent Records
-              </h2>
+              <h2 className="mb-4 text-lg font-semibold">Recent Records</h2>
 
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b text-slate-500">
-                      <th className="py-3 pr-4">
-                        City
-                      </th>
-
-                      <th className="py-3 pr-4">
-                        State
-                      </th>
-
-                      <th className="py-3 pr-4">
-                        Type
-                      </th>
-
-                      <th className="py-3 pr-4">
-                        Value Bucket
-                      </th>
-
-                      <th className="py-3 pr-4">
-                        Gross Fee
-                      </th>
-
-                      <th className="py-3 pr-4">
-                        Tech Fee
-                      </th>
-
-                      <th className="py-3 pr-4">
-                        Net Fee
-                      </th>
-
-                      <th className="py-3 pr-4">
-                        Turn Time
-                      </th>
+                      <th className="py-3 pr-4">City</th>
+                      <th className="py-3 pr-4">State</th>
+                      <th className="py-3 pr-4">Type</th>
+                      <th className="py-3 pr-4">Value Bucket</th>
+                      <th className="py-3 pr-4">Gross Fee</th>
+                      <th className="py-3 pr-4">Tech Fee</th>
+                      <th className="py-3 pr-4">Net Fee</th>
+                      <th className="py-3 pr-4">Turn Time</th>
                     </tr>
                   </thead>
 
                   <tbody>
-                    {filteredRecords
-                      .slice(0, 20)
-                      .map((r, index) => (
-                        <tr
-                          key={`${r.City}-${r.State}-${index}`}
-                          className="border-b"
-                        >
-                          <td className="py-3 pr-4">
-                            {r.City}
-                          </td>
-
-                          <td className="py-3 pr-4">
-                            {r.State}
-                          </td>
-
-                          <td className="py-3 pr-4">
-                            {
-                              r[
-                                "Assignment Type"
-                              ]
-                            }
-                          </td>
-
-                          <td className="py-3 pr-4">
-                            {
-                              r[
-                                "Value Bucket"
-                              ]
-                            }
-                          </td>
-
-                          <td className="py-3 pr-4">
-                            {money(
-                              Number(
-                                r[
-                                  "Fee Total"
-                                ]
-                              )
-                            )}
-                          </td>
-
-                          <td className="py-3 pr-4">
-                            {money(
-                              Number(
-                                r[
-                                  "Technology Fees"
-                                ]
-                              )
-                            )}
-                          </td>
-
-                          <td className="py-3 pr-4">
-                            {money(
-                              Number(
-                                r["Net Fee"]
-                              )
-                            )}
-                          </td>
-
-                          <td className="py-3 pr-4">
-                            {Number(
-                              r[
-                                "Turn Time (Days)"
-                              ]
-                            ).toFixed(1)}{" "}
-                            days
-                          </td>
-                        </tr>
-                      ))}
+                    {filteredRecords.slice(0, 20).map((r, index) => (
+                      <tr key={`${r.City}-${r.State}-${index}`} className="border-b">
+                        <td className="py-3 pr-4">{r.City}</td>
+                        <td className="py-3 pr-4">{r.State}</td>
+                        <td className="py-3 pr-4">{r["Assignment Type"]}</td>
+                        <td className="py-3 pr-4">{r["Value Bucket"]}</td>
+                        <td className="py-3 pr-4">{money(Number(r["Fee Total"]))}</td>
+                        <td className="py-3 pr-4">
+                          {money(Number(r["Technology Fees"]))}
+                        </td>
+                        <td className="py-3 pr-4">{money(Number(r["Net Fee"]))}</td>
+                        <td className="py-3 pr-4">
+                          {Number(r["Turn Time (Days)"]).toFixed(1)} days
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -565,22 +422,11 @@ const [formData, setFormData] = useState({
   );
 }
 
-function StatCard({
-  title,
-  value,
-}: {
-  title: string;
-  value: string;
-}) {
+function StatCard({ title, value }: { title: string; value: string }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-slate-500">
-        {title}
-      </p>
-
-      <p className="mt-2 text-2xl font-bold text-slate-900">
-        {value}
-      </p>
+      <p className="text-sm font-medium text-slate-500">{title}</p>
+      <p className="mt-2 text-2xl font-bold text-slate-900">{value}</p>
     </div>
   );
 }
