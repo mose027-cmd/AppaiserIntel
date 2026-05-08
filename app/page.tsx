@@ -106,12 +106,27 @@ if (
       "Turn Time (Days)": Number(formData.turnTime) || 0,
     },
   ]);
+if (error) {
+  console.error(error);
+  alert("Submission failed.");
+} else {
+  alert("Record submitted successfully!");
 
-  if (error) {
-    alert("Something went wrong. Check the console.");
-    console.error(error);
-    return;
-  }
+  setFormData({
+    city: "",
+    state: "",
+    assignmentType: "",
+    valueBucket: "",
+    grossFee: "",
+    techFee: "",
+    netFee: "",
+    turnTime: "",
+  });
+
+  setShowForm(false);
+
+  loadRecords();
+}
 
   setRecords((current) => [
     {
