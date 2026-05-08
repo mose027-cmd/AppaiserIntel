@@ -406,6 +406,11 @@ if (error) {
         )}
 
         <div className="mb-6 grid gap-4 md:grid-cols-3">
+<div className="md:col-span-3 flex items-center justify-between">
+  <p className="text-sm text-slate-500">
+    {filteredRecords.length} records found
+  </p>
+</div>
           <select
             className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
             value={stateFilter}
