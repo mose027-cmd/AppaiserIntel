@@ -262,7 +262,23 @@ export default function Home() {
             ahead of the UAD 3.6 transition.
           </p>
         </div>
+<div className="mb-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div>
+      <h2 className="text-2xl font-bold">
+        Submit Appraisal Data
+      </h2>
 
+      <p className="mt-2 text-slate-600">
+        Contribute anonymous fee and turn-time data to improve appraisal market transparency ahead of UAD 3.6.
+      </p>
+    </div>
+
+    <button className="rounded-2xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700">
+      Submit Data
+    </button>
+  </div>
+</div>
         <div className="mb-6 grid gap-4 md:grid-cols-3">
           <select
             className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
