@@ -62,7 +62,18 @@ export default function Home() {
   const [stateFilter, setStateFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
   const [valueFilter, setValueFilter] = useState("All");
+const [showForm, setShowForm] = useState(false);
 
+const [formData, setFormData] = useState({
+  city: "",
+  state: "",
+  assignmentType: "",
+  valueBucket: "",
+  grossFee: "",
+  techFee: "",
+  netFee: "",
+  turnTime: "",
+});
   useEffect(() => {
     async function loadRecords() {
       const { data, error } = await supabase
