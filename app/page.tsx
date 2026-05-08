@@ -72,7 +72,71 @@ export default function Home() {
     netFee: "",
     turnTime: "",
   });
+async function handleSubmitRecord() {
+  const grossFee = Number(formData.grossFee) || 0;
+  const techFee = Number(formData.techFee) || 0;
+  const netFee = formData.netFee ? Number(formData.netFee) : grossFee - techFee;
 
+  const { error } = await supabase.from("billing_records").insert([
+    {
+      "File No.": `community-${Date.now()}`,
+      City: formData.city,
+      State: formData.state,
+      Zip: "",
+      "Appraised Value": null,
+      "Value Bucket": formData.valueBucket,
+      "Major Form": formData.assignmentType,
+      "Assignment Type": formData.assignmentType,
+      "Fee Total": grossFee,
+      "Technology Fees": techFee,
+      "Net Fee": netFee,
+      "Inspection Date": "",
+      "Delivered Date": "",
+      "Due Date": "",
+      "Turn Time (Days)": Number(formData.turnTime) || 0,
+    },
+  ]);
+
+  if (error) {
+    alert("Something went wrong. Check the console.");
+    console.error(error);
+    return;
+  }
+
+  setRecords((current) => [
+    {
+      "File No.": `community-${Date.now()}`,
+      City: formData.city,
+      State: formData.state,
+      Zip: "",
+      "Appraised Value": null,
+      "Value Bucket": formData.valueBucket,
+      "Major Form": formData.assignmentType,
+      "Assignment Type": formData.assignmentType,
+      "Fee Total": grossFee,
+      "Technology Fees": techFee,
+      "Net Fee": netFee,
+      "Inspection Date": "",
+      "Delivered Date": "",
+      "Due Date": "",
+      "Turn Time (Days)": Number(formData.turnTime) || 0,
+    },
+    ...current,
+  ]);
+
+  setFormData({
+    city: "",
+    state: "",
+    assignmentType: "",
+    valueBucket: "",
+    grossFee: "",
+    techFee: "",
+    netFee: "",
+    turnTime: "",
+  });
+
+  setShowForm(false);
+}
   useEffect(() => {
     async function loadRecords() {
       const { data, error } = await supabase.from("billing_records").select("*");
