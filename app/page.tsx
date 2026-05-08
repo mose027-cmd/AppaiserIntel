@@ -61,7 +61,7 @@ export default function Home() {
   const [valueFilter, setValueFilter] = useState("All");
 
   const [showForm, setShowForm] = useState(false);
-
+const [successMessage, setSuccessMessage] = useState("");
   const [formData, setFormData] = useState({
     city: "",
     state: "",
