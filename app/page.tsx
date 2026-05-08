@@ -316,11 +316,19 @@ setTimeout(() => {
 
             <div className="grid gap-4 md:grid-cols-2">
               <input
-                placeholder="City"
-                className="rounded-xl border border-slate-300 px-4 py-3"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              />
+  placeholder="AMC / Lender"
+  className="rounded-xl border border-slate-300 px-4 py-3"
+  value={formData.amc}
+  onChange={(e) =>
+    setFormData({ ...formData, amc: e.target.value })
+  }
+/>
+<input
+  placeholder="City"
+  className="rounded-xl border border-slate-300 px-4 py-3"
+  value={formData.city}
+  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+/>
 <select
   className="rounded-xl border border-slate-300 px-4 py-3"
   value={formData.state}
