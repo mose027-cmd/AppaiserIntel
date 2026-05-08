@@ -122,7 +122,9 @@ setSuccessMessage("Record submitted successfully.");
     netFee: "",
     turnTime: "",
   });
-
+setTimeout(() => {
+  setSuccessMessage("");
+}, 3000);
   setShowForm(false);
 
 }
