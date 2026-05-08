@@ -289,13 +289,18 @@ async function handleSubmitRecord() {
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
               />
-
-              <input
-                placeholder="State"
-                className="rounded-xl border border-slate-300 px-4 py-3"
-                value={formData.state}
-                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-              />
+<select
+  className="rounded-xl border border-slate-300 px-4 py-3"
+  value={formData.state}
+  onChange={(e) =>
+    setFormData({ ...formData, state: e.target.value })
+  }
+>
+  <option value="">Select State</option>
+  <option value="OH">OH</option>
+  <option value="KY">KY</option>
+  <option value="IN">IN</option>
+</select>
 
 <select
   className="rounded-xl border border-slate-300 px-4 py-3"
