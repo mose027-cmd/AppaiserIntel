@@ -260,6 +260,11 @@ setTimeout(() => {
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <section className="mx-auto max-w-7xl px-6 py-8">
+{successMessage && (
+  <div className="mb-6 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-green-700">
+    {successMessage}
+  </div>
+)}
         <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
           <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-blue-600">
             Appraiser Intel
