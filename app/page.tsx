@@ -19,342 +19,323 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-type Submission = {
-  id: number;
-  city: string;
-  state: string;
-  form_type: string;
-  loan_type: string;
-  fee: number;
-  turn_time: string;
+type BillingRecord = {
+  "File No.": string;
+  City: string | null;
+  State: string | null;
+  Zip: string | null;
+  "Appraised Value": number | null;
+  "Value Bucket": string | null;
+  "Major Form": string | null;
+  "Assignment Type": string | null;
+  "Fee Total": number | null;
+  "Technology Fees": number | null;
+  "Net Fee": number | null;
+  "Inspection Date": string | null;
+  "Delivered Date": string | null;
+  "Due Date": string | null;
+  "Turn Time (Days)": number | null;
 };
 
-type BillingRecord = {
-  id: number;
-  order_date: string | null;
-  client_name: string | null;
-  gross_fee: number | null;
-  tech_fee: number | null;
-  net_fee: number | null;
-  form_type: string | null;
-  zip_code: string | null;
-};
+function money(value: number) {
+  if (!Number.isFinite(value)) return "$0";
+  return value.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
+}
+
+function avg(values: number[]) {
+  const valid = values.filter((v) => Number.isFinite(v));
+  if (!valid.length) return 0;
+  return valid.reduce((a, b) => a + b, 0) / valid.length;
+}
 
 export default function Home() {
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [billingRecords, setBillingRecords] = useState<BillingRecord[]>([]);
-
-  async function loadData() {
-    const { data: submissionData } = await supabase
-      .from("submissions")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    let allBillingRecords: BillingRecord[] = [];
-    let from = 0;
-    const pageSize = 1000;
-
-    while (true) {
-      const { data, error } = await supabase
-        .from("billing_records")
-        .select("*")
-        .order("order_date", { ascending: true })
-        .range(from, from + pageSize - 1);
-
-      if (error) {
-        console.error(error);
-        break;
-      }
-
-      if (!data || data.length === 0) break;
-
-      allBillingRecords = [...allBillingRecords, ...data];
-
-      if (data.length < pageSize) break;
-
-      from += pageSize;
-    }
-
-    setSubmissions(submissionData || []);
-    setBillingRecords(allBillingRecords);
-  }
+  const [records, setRecords] = useState<BillingRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stateFilter, setStateFilter] = useState("All");
+  const [typeFilter, setTypeFilter] = useState("All");
+  const [valueFilter, setValueFilter] = useState("All");
 
   useEffect(() => {
-    loadData();
+    async function loadRecords() {
+      const { data, error } = await supabase
+        .from("billing_records")
+        .select("*");
+
+      if (error) {
+        console.error("Supabase error:", error);
+      } else {
+        setRecords((data || []) as BillingRecord[]);
+      }
+
+      setLoading(false);
+    }
+
+    loadRecords();
   }, []);
 
-  const billingStats = useMemo(() => {
-    const count = billingRecords.length;
+  const states = useMemo(
+    () => ["All", ...Array.from(new Set(records.map((r) => r.State).filter(Boolean)))],
+    [records]
+  );
 
-    const grossTotal = billingRecords.reduce(
-      (sum, record) => sum + Number(record.gross_fee || 0),
-      0
-    );
+  const assignmentTypes = useMemo(
+    () => [
+      "All",
+      ...Array.from(new Set(records.map((r) => r["Assignment Type"]).filter(Boolean))),
+    ],
+    [records]
+  );
 
-    const techTotal = billingRecords.reduce(
-      (sum, record) => sum + Number(record.tech_fee || 0),
-      0
-    );
+  const valueBuckets = useMemo(
+    () => [
+      "All",
+      ...Array.from(new Set(records.map((r) => r["Value Bucket"]).filter(Boolean))),
+    ],
+    [records]
+  );
 
-    const netTotal = billingRecords.reduce(
-      (sum, record) => sum + Number(record.net_fee || 0),
-      0
-    );
+  const filteredRecords = useMemo(() => {
+    return records.filter((r) => {
+      const stateMatch = stateFilter === "All" || r.State === stateFilter;
+      const typeMatch =
+        typeFilter === "All" || r["Assignment Type"] === typeFilter;
+      const valueMatch =
+        valueFilter === "All" || r["Value Bucket"] === valueFilter;
 
-    return {
-      count,
-      grossTotal,
-      techTotal,
-      netTotal,
-      avgGross: count ? Math.round(grossTotal / count) : 0,
-      avgTech: count ? Math.round(techTotal / count) : 0,
-      avgNet: count ? Math.round(netTotal / count) : 0,
-    };
-  }, [billingRecords]);
+      return stateMatch && typeMatch && valueMatch;
+    });
+  }, [records, stateFilter, typeFilter, valueFilter]);
 
-  const yearlyFeeTrend = useMemo(() => {
-    const groups: Record<
-      string,
-      { gross: number; net: number; tech: number; count: number }
-    > = {};
+  const avgGrossFee = avg(filteredRecords.map((r) => Number(r["Fee Total"])));
+  const avgTechFee = avg(filteredRecords.map((r) => Number(r["Technology Fees"])));
+  const avgNetFee = avg(filteredRecords.map((r) => Number(r["Net Fee"])));
+  const avgTurnTime = avg(filteredRecords.map((r) => Number(r["Turn Time (Days)"])));
 
-    billingRecords.forEach((record) => {
-      if (!record.order_date) return;
+  const mostCommonType = useMemo(() => {
+    const counts: Record<string, number> = {};
 
-      const year = new Date(record.order_date).getFullYear();
-      if (!year || year < 1990 || year > 2100) return;
-
-      const key = String(year);
-
-      if (!groups[key]) {
-        groups[key] = { gross: 0, net: 0, tech: 0, count: 0 };
-      }
-
-      groups[key].gross += Number(record.gross_fee || 0);
-      groups[key].net += Number(record.net_fee || 0);
-      groups[key].tech += Number(record.tech_fee || 0);
-      groups[key].count += 1;
+    filteredRecords.forEach((r) => {
+      const type = r["Assignment Type"] || "Unknown";
+      counts[type] = (counts[type] || 0) + 1;
     });
 
-    return Object.entries(groups)
-      .map(([year, data]) => ({
-        year,
-        avgGross: Math.round(data.gross / data.count),
-        avgNet: Math.round(data.net / data.count),
-        grossFees: Math.round(data.gross),
-        techFees: Math.round(data.tech),
-        records: data.count,
-      }))
-      .sort((a, b) => Number(a.year) - Number(b.year));
-  }, [billingRecords]);
+    return (
+      Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A"
+    );
+  }, [filteredRecords]);
 
-  const topClients = useMemo(() => {
-    const groups: Record<string, { count: number; total: number }> = {};
+  const feeByValueBucket = useMemo(() => {
+    const grouped: Record<string, BillingRecord[]> = {};
 
-    billingRecords.forEach((record) => {
-      const name = record.client_name || "Unknown";
-
-      if (!groups[name]) {
-        groups[name] = { count: 0, total: 0 };
-      }
-
-      groups[name].count += 1;
-      groups[name].total += Number(record.net_fee || record.gross_fee || 0);
+    filteredRecords.forEach((r) => {
+      const bucket = r["Value Bucket"] || "Unknown";
+      grouped[bucket] = grouped[bucket] || [];
+      grouped[bucket].push(r);
     });
 
-    return Object.entries(groups)
-      .map(([name, data]) => ({
-        name,
-        count: data.count,
-        avg: Math.round(data.total / data.count),
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
-  }, [billingRecords]);
+    return Object.entries(grouped).map(([bucket, items]) => ({
+      bucket,
+      avgGrossFee: Math.round(avg(items.map((r) => Number(r["Fee Total"])))),
+      avgNetFee: Math.round(avg(items.map((r) => Number(r["Net Fee"])))),
+    }));
+  }, [filteredRecords]);
 
-  const clientVolumeChart = topClients.map((client) => ({
-    name:
-      client.name.length > 16
-        ? client.name.slice(0, 16) + "..."
-        : client.name,
-    records: client.count,
-  }));
+  const feeByType = useMemo(() => {
+    const grouped: Record<string, BillingRecord[]> = {};
 
-  const totalGrossFees = "$" + Math.round(billingStats.grossTotal).toLocaleString();
-  const totalTechFees = "$" + Math.round(billingStats.techTotal).toLocaleString();
+    filteredRecords.forEach((r) => {
+      const type = r["Assignment Type"] || "Unknown";
+      grouped[type] = grouped[type] || [];
+      grouped[type].push(r);
+    });
+
+    return Object.entries(grouped).map(([type, items]) => ({
+      type,
+      avgFee: Math.round(avg(items.map((r) => Number(r["Fee Total"])))),
+    }));
+  }, [filteredRecords]);
 
   return (
-    <main className="min-h-screen bg-slate-100 text-slate-900">
-      <div className="flex min-h-screen">
-        <aside className="hidden w-64 border-r border-slate-200 bg-white p-6 md:block">
-          <div className="mb-10 text-3xl font-bold text-blue-700">
-            AppraiserIntel
-          </div>
-
-          <nav className="space-y-3">
-            {[
-              "Dashboard",
-              "Fee Search",
-              "Submit Data",
-              "Billing Intel",
-              "AMC Scorecard",
-              "Market Trends",
-              "Reports",
-            ].map((item, index) => (
-              <div
-                key={item}
-                className={
-                  index === 0
-                    ? "rounded-xl bg-blue-50 px-4 py-3 font-medium text-blue-700"
-                    : "cursor-pointer rounded-xl px-4 py-3 text-slate-700 transition hover:bg-slate-100"
-                }
-              >
-                {item}
-              </div>
-            ))}
-          </nav>
-        </aside>
-
-        <section className="flex-1 p-10">
-          <h1 className="text-6xl font-bold tracking-tight">Dashboard</h1>
-
-          <p className="mt-2 text-2xl text-slate-600">
-            Real fee data. Real market insight. Built for appraisers.
+    <main className="min-h-screen bg-slate-50 text-slate-900">
+      <section className="mx-auto max-w-7xl px-6 py-8">
+        <div className="mb-8 rounded-3xl bg-white p-8 shadow-sm border border-slate-200">
+          <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-blue-600">
+            Appraiser Intel
           </p>
 
-          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-4">
-            <StatCard title="COMMUNITY SUBMISSIONS" value={submissions.length} />
-            <StatCard title="BILLING RECORDS" value={billingStats.count} />
-            <StatCard title="TOTAL GROSS FEES" value={totalGrossFees} />
-            <StatCard title="TOTAL TECH FEES" value={totalTechFees} />
+          <h1 className="text-4xl font-bold tracking-tight">
+            Market intelligence for residential appraisers.
+          </h1>
+
+          <p className="mt-4 max-w-3xl text-slate-600">
+            Benchmark appraisal fees, technology fees, net compensation, turn
+            times, and assignment trends ahead of the UAD 3.6 transition.
+          </p>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <span className="rounded-full bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700">
+              Fee Analytics
+            </span>
+            <span className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
+              Net Fee Tracking
+            </span>
+            <span className="rounded-full bg-purple-50 px-4 py-2 text-sm font-medium text-purple-700">
+              UAD 3.6 Ready
+            </span>
           </div>
+        </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
-            <StatCard title="AVG GROSS FEE" value={"$" + billingStats.avgGross} />
-            <StatCard title="AVG NET FEE" value={"$" + billingStats.avgNet} />
-            <StatCard title="AVG TECH FEE" value={"$" + billingStats.avgTech} />
+        <div className="mb-6 grid gap-4 md:grid-cols-3">
+          <select
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
+            value={stateFilter}
+            onChange={(e) => setStateFilter(e.target.value)}
+          >
+            {states.map((state) => (
+              <option key={state}>{state}</option>
+            ))}
+          </select>
+
+          <select
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+          >
+            {assignmentTypes.map((type) => (
+              <option key={type}>{type}</option>
+            ))}
+          </select>
+
+          <select
+            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
+            value={valueFilter}
+            onChange={(e) => setValueFilter(e.target.value)}
+          >
+            {valueBuckets.map((bucket) => (
+              <option key={bucket}>{bucket}</option>
+            ))}
+          </select>
+        </div>
+
+        {loading ? (
+          <div className="rounded-2xl bg-white p-8 text-slate-600 shadow-sm border border-slate-200">
+            Loading appraisal data...
           </div>
-
-          <div className="mt-10 grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <ChartCard title="Average Fee Trend by Year">
-              <ResponsiveContainer width="100%" height={320}>
-                <LineChart data={yearlyFeeTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="avgGross"
-                    strokeWidth={3}
-                    name="Avg Gross Fee"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="avgNet"
-                    strokeWidth={3}
-                    name="Avg Net Fee"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartCard>
-
-            <ChartCard title="Most Active Clients by Volume">
-              <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={clientVolumeChart}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="records" name="Records" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </div>
-
-          <div className="mt-10 grid grid-cols-1 gap-6 xl:grid-cols-2">
-            <ChartCard title="Gross Fees by Year">
-              <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={yearlyFeeTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="grossFees" name="Gross Fees" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
-
-            <ChartCard title="Tech Fees Eaten by Year">
-              <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={yearlyFeeTrend}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="year" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="techFees" name="Tech Fees" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartCard>
-          </div>
-
-          <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <h2 className="mb-6 text-4xl font-bold">Most Active Clients</h2>
-
-            <div className="space-y-4">
-              {topClients.map((client, index) => (
-                <div
-                  key={client.name}
-                  className="flex items-center justify-between rounded-2xl border border-slate-200 p-5"
-                >
-                  <div>
-                    <div className="text-sm text-slate-400">#{index + 1}</div>
-                    <div className="text-2xl font-semibold">{client.name}</div>
-                    <div className="text-slate-500">{client.count} records</div>
-                  </div>
-
-                  <div className="text-4xl font-bold text-blue-700">
-                    {"$" + client.avg}
-                  </div>
-                </div>
-              ))}
+        ) : (
+          <>
+            <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+              <StatCard title="Records" value={filteredRecords.length.toString()} />
+              <StatCard title="Avg Gross Fee" value={money(avgGrossFee)} />
+              <StatCard title="Avg Tech Fee" value={money(avgTechFee)} />
+              <StatCard title="Avg Net Fee" value={money(avgNetFee)} />
+              <StatCard
+                title="Avg Turn Time"
+                value={`${avgTurnTime.toFixed(1)} days`}
+              />
+              <StatCard title="Top Form" value={mostCommonType} />
             </div>
-          </div>
-        </section>
-      </div>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="rounded-3xl bg-white p-6 shadow-sm border border-slate-200">
+                <h2 className="mb-4 text-lg font-semibold">
+                  Average Fee by Value Bucket
+                </h2>
+
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={feeByValueBucket}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="bucket" />
+                      <YAxis />
+                      <Tooltip />
+                      <Bar dataKey="avgGrossFee" name="Avg Gross Fee" />
+                      <Bar dataKey="avgNetFee" name="Avg Net Fee" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="rounded-3xl bg-white p-6 shadow-sm border border-slate-200">
+                <h2 className="mb-4 text-lg font-semibold">
+                  Average Fee by Assignment Type
+                </h2>
+
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={feeByType}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="type" />
+                      <YAxis />
+                      <Tooltip />
+                      <Line
+                        type="monotone"
+                        dataKey="avgFee"
+                        name="Avg Fee"
+                        strokeWidth={3}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-3xl bg-white p-6 shadow-sm border border-slate-200">
+              <h2 className="mb-4 text-lg font-semibold">Recent Records</h2>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b text-slate-500">
+                      <th className="py-3 pr-4">File No.</th>
+                      <th className="py-3 pr-4">City</th>
+                      <th className="py-3 pr-4">State</th>
+                      <th className="py-3 pr-4">Type</th>
+                      <th className="py-3 pr-4">Value Bucket</th>
+                      <th className="py-3 pr-4">Gross Fee</th>
+                      <th className="py-3 pr-4">Tech Fee</th>
+                      <th className="py-3 pr-4">Net Fee</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {filteredRecords.slice(0, 20).map((r) => (
+                      <tr key={r["File No."]} className="border-b">
+                        <td className="py-3 pr-4">{r["File No."]}</td>
+                        <td className="py-3 pr-4">{r.City}</td>
+                        <td className="py-3 pr-4">{r.State}</td>
+                        <td className="py-3 pr-4">{r["Assignment Type"]}</td>
+                        <td className="py-3 pr-4">{r["Value Bucket"]}</td>
+                        <td className="py-3 pr-4">
+                          {money(Number(r["Fee Total"]))}
+                        </td>
+                        <td className="py-3 pr-4">
+                          {money(Number(r["Technology Fees"]))}
+                        </td>
+                        <td className="py-3 pr-4">
+                          {money(Number(r["Net Fee"]))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
+      </section>
     </main>
   );
 }
 
-function StatCard({
-  title,
-  value,
-}: {
-  title: string;
-  value: string | number;
-}) {
+function StatCard({ title, value }: { title: string; value: string }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="text-sm font-medium uppercase tracking-wide text-slate-500">
-        {title}
-      </div>
-
-      <div className="mt-4 text-5xl font-bold text-slate-900">{value}</div>
-    </div>
-  );
-}
-
-function ChartCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-      <h3 className="mb-6 text-4xl font-bold">{title}</h3>
-      {children}
+    <div className="rounded-2xl bg-white p-5 shadow-sm border border-slate-200">
+      <p className="text-sm font-medium text-slate-500">{title}</p>
+      <p className="mt-2 text-2xl font-bold text-slate-900">{value}</p>
     </div>
   );
 }
