@@ -110,7 +110,7 @@ if (error) {
   console.error(error);
   alert("Submission failed.");
 } else {
-  alert("Record submitted successfully!");
+setSuccessMessage("Record submitted successfully.");
 
   setFormData({
     city: "",
