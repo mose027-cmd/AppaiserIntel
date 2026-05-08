@@ -285,7 +285,12 @@ const [formData, setFormData] = useState({
       </p>
     </div>
 
-    <button className="rounded-2xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700">
+  <button
+  onClick={() => setShowForm(true)}
+  className="rounded-2xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700"
+>
+  Submit Data
+</button> px-6 py-3 font-medium text-white transition hover:bg-blue-700">
       Submit Data
     </button>
   </div>
