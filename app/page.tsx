@@ -93,6 +93,7 @@ if (
       "File No.": `community-${Date.now()}`,
       City: formData.city,
       State: formData.state,
+      AMC: formData.amc,
       Zip: "",
       "Appraised Value": null,
       "Value Bucket": formData.valueBucket,
