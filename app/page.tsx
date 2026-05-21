@@ -168,16 +168,39 @@ setFormData({
   setShowForm(false);
 }
   useEffect(() => {
-    async function loadRecords() {
-      const { data, error } = await supabase.from("billing_records").select("*");
+  async function loadRecords() {
+  setLoading(true);
 
-      if (error) {
-        console.error(error);
-      } else {
-        setRecords((data || []) as BillingRecord[]);
-      }
+  let allRecords: BillingRecord[] = [];
+  let from = 0;
+  const pageSize = 1000;
+  let keepGoing = true;
 
-      setLoading(false);
+  while (keepGoing) {
+    const { data, error } = await supabase
+      .from("billing_records")
+      .select("*")
+      .range(from, from + pageSize - 1);
+
+    if (error) {
+      console.error(error);
+      break;
+    }
+
+    if (data) {
+      allRecords = [...allRecords, ...(data as BillingRecord[])];
+    }
+
+    if (!data || data.length < pageSize) {
+      keepGoing = false;
+    } else {
+      from += pageSize;
+    }
+  }
+
+  setRecords(allRecords);
+  setLoading(false);
+}
     }
 
     loadRecords();
