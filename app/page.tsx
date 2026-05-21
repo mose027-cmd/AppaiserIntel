@@ -525,8 +525,12 @@ Average Fee by Form Type
                 </h2>
 
                 <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={feeByType}>
+<LineChart
+  data={feeByType.map((d) => ({
+    type: d.type || "Unknown",
+    avgFee: d.avgFee || 0,
+  }))}
+>
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="type" />
                       <YAxis />
