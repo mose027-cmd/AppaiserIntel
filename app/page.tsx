@@ -547,7 +547,7 @@ if (rawType.includes("1004D") || rawType.includes("FINAL")) {
 Average Fee by Form Type
                 </h2>
 
-<div className="h-80">
+<div className="h-[520px]">
   <ResponsiveContainer width="100%" height="100%">
     <LineChart
       data={feeByType.map((d) => ({
@@ -556,7 +556,13 @@ Average Fee by Form Type
       }))}
     >
       <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="type" />
+<XAxis
+  dataKey="type"
+  interval={0}
+  angle={-35}
+  textAnchor="end"
+  height={110}
+/>
       <YAxis />
       <Tooltip />
       <Line
