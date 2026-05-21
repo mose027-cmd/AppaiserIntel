@@ -272,9 +272,9 @@ loadRecords();
 
     filteredRecords.forEach((r) => {
 const type =
-  r["Major Form"] ||
-  r["Major Form "] ||
-  r["Assignment Type"] ||
+  (r as any)["Major Form"] ||
+  (r as any)["Major Form "] ||
+  (r as any)["Assignment Type"] ||
   "Unknown";
       grouped[type] = grouped[type] || [];
       grouped[type].push(r);
