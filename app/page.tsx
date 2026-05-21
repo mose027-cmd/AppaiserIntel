@@ -596,6 +596,35 @@ Average Fee by Form Type
   </ResponsiveContainer>
 </div>
                 </div>
+              <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+  <h2 className="mb-4 text-lg font-semibold">Top AMCs by Average Gross Fee</h2>
+
+  <div className="overflow-x-auto">
+    <table className="w-full text-left text-sm">
+      <thead>
+        <tr className="border-b text-slate-500">
+          <th className="py-3 pr-4">AMC</th>
+          <th className="py-3 pr-4">Records</th>
+          <th className="py-3 pr-4">Avg Gross Fee</th>
+          <th className="py-3 pr-4">Avg Net Fee</th>
+          <th className="py-3 pr-4">Avg Turn Time</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {feeByAMC.map((row) => (
+          <tr key={row.amc} className="border-b">
+            <td className="py-3 pr-4">{row.amc}</td>
+            <td className="py-3 pr-4">{row.count}</td>
+            <td className="py-3 pr-4">{money(row.avgGrossFee)}</td>
+            <td className="py-3 pr-4">{money(row.avgNetFee)}</td>
+            <td className="py-3 pr-4">{row.avgTurnTime.toFixed(1)} days</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
               </div>
             <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
               <h2 className="mb-4 text-lg font-semibold">Recent Records</h2>
