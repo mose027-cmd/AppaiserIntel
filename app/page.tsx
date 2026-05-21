@@ -271,7 +271,7 @@ loadRecords();
     const grouped: Record<string, BillingRecord[]> = {};
 
     filteredRecords.forEach((r) => {
-      const type = r["Assignment Type"] || "Unknown";
+const type = r["Major Form"] || "Unknown";
       grouped[type] = grouped[type] || [];
       grouped[type].push(r);
     });
@@ -517,7 +517,7 @@ loadRecords();
 
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 className="mb-4 text-lg font-semibold">
-                  Average Fee by Assignment Type
+Average Fee by Form Type
                 </h2>
 
                 <div className="h-80">
