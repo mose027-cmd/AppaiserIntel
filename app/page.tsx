@@ -584,6 +584,8 @@ Average Fee by Form Type
                 <table className="w-full text-left text-sm">
                   <thead>
                     <tr className="border-b text-slate-500">
+                      <th className="py-3 pr-4">AMC</th>
+<th className="py-3 pr-4">Lender</th>
                       <th className="py-3 pr-4">City</th>
                       <th className="py-3 pr-4">State</th>
                       <th className="py-3 pr-4">Type</th>
@@ -598,6 +600,8 @@ Average Fee by Form Type
                   <tbody>
                     {filteredRecords.slice(0, 20).map((r, index) => (
                       <tr key={`${r.City}-${r.State}-${index}`} className="border-b">
+<td className="py-3 pr-4">{(r as any).AMC || "Direct Order"}</td>
+<td className="py-3 pr-4">{(r as any).Lender || "Unknown"}</td>
                         <td className="py-3 pr-4">{r.City}</td>
                         <td className="py-3 pr-4">{r.State}</td>
                         <td className="py-3 pr-4">{r["Assignment Type"]}</td>
