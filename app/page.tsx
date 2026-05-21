@@ -271,11 +271,34 @@ loadRecords();
     const grouped: Record<string, BillingRecord[]> = {};
 
     filteredRecords.forEach((r) => {
-const type =
+const rawType = String(
   (r as any)["Major Form"] ||
   (r as any)["Major Form "] ||
   (r as any)["Assignment Type"] ||
-  "Unknown";
+  ""
+).toUpperCase();
+
+let type = "Other";
+
+if (rawType.includes("1004D") || rawType.includes("FINAL")) {
+  type = "1004D / Final";
+} else if (rawType.includes("HYBRID")) {
+  type = "1004 Hybrid";
+} else if (rawType.includes("DESKTOP")) {
+  type = "1004 Desktop";
+} else if (rawType.includes("1004C") || rawType.includes("MANUFACTURED")) {
+  type = "1004C Manufactured";
+} else if (rawType.includes("1073")) {
+  type = "1073 Condo";
+} else if (rawType.includes("1075")) {
+  type = "1075 Condo";
+} else if (rawType.includes("1025") || rawType.includes("SMALL INCOME")) {
+  type = "1025 Multi-Family";
+} else if (rawType.includes("2055") || rawType.includes("EXTERIOR")) {
+  type = "2055 Exterior";
+} else if (rawType.includes("1004") || rawType.includes("URAR")) {
+  type = "1004 URAR";
+}
       grouped[type] = grouped[type] || [];
       grouped[type].push(r);
     });
