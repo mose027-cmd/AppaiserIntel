@@ -308,7 +308,27 @@ if (rawType.includes("1004D") || rawType.includes("FINAL")) {
       avgFee: Math.round(avg(items.map((r) => Number(r["Fee Total"])))),
     }));
   }, [filteredRecords]);
+const feeByAMC = useMemo(() => {
+  const grouped: Record<string, BillingRecord[]> = {};
 
+  filteredRecords.forEach((r) => {
+    const amc = (r as any).AMC || "Direct Order";
+    grouped[amc] = grouped[amc] || [];
+    grouped[amc].push(r);
+  });
+
+  return Object.entries(grouped)
+    .map(([amc, items]) => ({
+      amc,
+      count: items.length,
+      avgGrossFee: Math.round(avg(items.map((r) => Number(r["Fee Total"])))),
+      avgNetFee: Math.round(avg(items.map((r) => Number(r["Net Fee"])))),
+      avgTurnTime: Math.round(avg(items.map((r) => Number(r["Turn Time (Days)"])))),
+    }))
+    .filter((x) => x.count >= 5)
+    .sort((a, b) => b.avgGrossFee - a.avgGrossFee)
+    .slice(0, 10);
+}, [filteredRecords]);
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
       <section className="mx-auto max-w-7xl px-6 py-8">
