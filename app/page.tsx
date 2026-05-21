@@ -271,7 +271,11 @@ loadRecords();
     const grouped: Record<string, BillingRecord[]> = {};
 
     filteredRecords.forEach((r) => {
-const type = r["Major Form"] || "Unknown";
+const type =
+  r["Major Form"] ||
+  r["Major Form "] ||
+  r["Assignment Type"] ||
+  "Unknown";
       grouped[type] = grouped[type] || [];
       grouped[type].push(r);
     });
