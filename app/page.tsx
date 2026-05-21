@@ -198,14 +198,12 @@ setFormData({
     }
   }
 
-  setRecords(allRecords);
-  setLoading(false);
+setRecords(allRecords);
+setLoading(false);
 }
-    }
 
-    loadRecords();
-  }, []);
-
+loadRecords();
+}, []);
   const states = useMemo(
     () => ["All", ...Array.from(new Set(records.map((r) => r.State).filter(Boolean)))],
     [records]
