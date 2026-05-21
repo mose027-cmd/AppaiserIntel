@@ -548,8 +548,6 @@ Average Fee by Form Type
 </div>
                 </div>
               </div>
-            </div>
-
             <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
               <h2 className="mb-4 text-lg font-semibold">Recent Records</h2>
 
