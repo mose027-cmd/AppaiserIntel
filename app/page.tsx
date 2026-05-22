@@ -665,10 +665,9 @@ Average Fee by Form Type
                       <th className="py-3 pr-4">Turn Time</th>
                     </tr>
                   </thead>
-
                   <tbody>
                     {filteredRecords.slice(0, 20).map((r, index) => (
-                      <tr key={`${r.City}-${r.State}-${index}`} className="border-b">
+<tr key={`${r.City}-${r.State}-${index}`} className="border-b">
 <td className="py-3 pr-4">{(r as any).AMC || "Direct Order"}</td>
 <td className="py-3 pr-4">{(r as any).Lender || "Unknown"}</td>
                         <td className="py-3 pr-4">{r.City}</td>
