@@ -646,49 +646,48 @@ Average Fee by Form Type
     </table>
   </div>
 </div>
-            <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-lg font-semibold">Recent Records</h2>
+<div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+  <h2 className="mb-4 text-lg font-semibold">Recent Records</h2>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b text-slate-500">
-                      <th className="py-3 pr-4">AMC</th>
-<th className="py-3 pr-4">Lender</th>
-                      <th className="py-3 pr-4">City</th>
-                      <th className="py-3 pr-4">State</th>
-                      <th className="py-3 pr-4">Type</th>
-                      <th className="py-3 pr-4">Value Bucket</th>
-                      <th className="py-3 pr-4">Gross Fee</th>
-                      <th className="py-3 pr-4">Tech Fee</th>
-                      <th className="py-3 pr-4">Net Fee</th>
-                      <th className="py-3 pr-4">Turn Time</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredRecords.slice(0, 20).map((r, index) => (
-<tr key={`${r.City}-${r.State}-${index}`} className="border-b">
-<td className="py-3 pr-4">{(r as any).AMC || "Direct Order"}</td>
-<td className="py-3 pr-4">{(r as any).Lender || "Unknown"}</td>
-                        <td className="py-3 pr-4">{r.City}</td>
-                        <td className="py-3 pr-4">{r.State}</td>
-                        <td className="py-3 pr-4">{r["Assignment Type"]}</td>
-                        <td className="py-3 pr-4">{r["Value Bucket"]}</td>
-                        <td className="py-3 pr-4">{money(Number(r["Fee Total"]))}</td>
-                        <td className="py-3 pr-4">
-                          {money(Number(r["Technology Fees"]))}
-                        </td>
-                        <td className="py-3 pr-4">{money(Number(r["Net Fee"]))}</td>
-                        <td className="py-3 pr-4">
-                          {Number(r["Turn Time (Days)"]).toFixed(1)} days
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-      </div>
-  </section>
+  <div className="overflow-x-auto">
+    <table className="w-full text-left text-sm">
+      <thead>
+        <tr className="border-b text-slate-500">
+          <th className="py-3 pr-4">AMC</th>
+          <th className="py-3 pr-4">Lender</th>
+          <th className="py-3 pr-4">City</th>
+          <th className="py-3 pr-4">State</th>
+          <th className="py-3 pr-4">Type</th>
+          <th className="py-3 pr-4">Value Bucket</th>
+          <th className="py-3 pr-4">Gross Fee</th>
+          <th className="py-3 pr-4">Tech Fee</th>
+          <th className="py-3 pr-4">Net Fee</th>
+          <th className="py-3 pr-4">Turn Time</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {filteredRecords.slice(0, 20).map((r, index) => (
+          <tr key={`${r.City}-${r.State}-${index}`} className="border-b">
+            <td className="py-3 pr-4">{(r as any).AMC || "Direct Order"}</td>
+            <td className="py-3 pr-4">{(r as any).Lender || "Unknown"}</td>
+            <td className="py-3 pr-4">{r.City}</td>
+            <td className="py-3 pr-4">{r.State}</td>
+            <td className="py-3 pr-4">{r["Assignment Type"]}</td>
+            <td className="py-3 pr-4">{r["Value Bucket"]}</td>
+            <td className="py-3 pr-4">{money(Number(r["Fee Total"]))}</td>
+            <td className="py-3 pr-4">{money(Number(r["Technology Fees"]))}</td>
+            <td className="py-3 pr-4">{money(Number(r["Net Fee"]))}</td>
+            <td className="py-3 pr-4">
+              {Number(r["Turn Time (Days)"]).toFixed(1)} days
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
     </main>
   );
 }
