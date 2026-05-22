@@ -687,7 +687,8 @@ Average Fee by Form Type
                   </tbody>
                 </table>
               </div>
-</section>
+      </div>
+  </section>
     </main>
   );
 }
