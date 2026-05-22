@@ -555,7 +555,7 @@ const feeByAMC = useMemo(() => {
             Loading data...
           </div>
         ) : (
-          <>
+ <div>
             <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-6">
               <StatCard title="Records" value={filteredRecords.length.toString()} />
               <StatCard title="Avg Gross Fee" value={money(avgGrossFee)} />
@@ -687,7 +687,7 @@ Average Fee by Form Type
        </table>
    </div>
 </div>
-          </>
+</div>
         )}
       </main>
   );
