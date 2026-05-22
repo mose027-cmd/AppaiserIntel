@@ -550,147 +550,24 @@ const feeByAMC = useMemo(() => {
           </select>
         </div>
 
-        {loading ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-            Loading data...
-          </div>
-        ) : (
- <div>
-            <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-              <StatCard title="Records" value={filteredRecords.length.toString()} />
-              <StatCard title="Avg Gross Fee" value={money(avgGrossFee)} />
-              <StatCard title="Avg Tech Fee" value={money(avgTechFee)} />
-              <StatCard title="Avg Net Fee" value={money(avgNetFee)} />
-              <StatCard title="Avg Turn Time" value={`${avgTurnTime.toFixed(1)} days`} />
-              <StatCard title="Top Form" value={mostCommonType} />
-            </div>
-
-            <div className="grid gap-6 lg:grid-cols-2">
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold">Average Fee by Value Bucket</h2>
-
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={feeByValueBucket}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="bucket" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="avgGrossFee" name="Avg Gross Fee" />
-                      <Bar dataKey="avgNetFee" name="Avg Net Fee" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="mb-4 text-lg font-semibold">
-Average Fee by Form Type
-                </h2>
-
-<div className="h-[520px]">
-  <ResponsiveContainer width="100%" height="100%">
-    <LineChart
-      data={feeByType.map((d) => ({
-        type: d.type || "Unknown",
-        avgFee: d.avgFee || 0,
-      }))}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-<XAxis
-  dataKey="type"
-  interval={0}
-  angle={-35}
-  textAnchor="end"
-  height={110}
-/>
-      <YAxis />
-      <Tooltip />
-      <Line
-        type="monotone"
-        dataKey="avgFee"
-        name="Avg Fee"
-        stroke="#2563eb"
-        strokeWidth={3}
-      />
-    </LineChart>
-  </ResponsiveContainer>
-</div>
-                </div>
-              <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-  <h2 className="mb-4 text-lg font-semibold">Top AMCs by Average Gross Fee</h2>
-
-  <div className="overflow-x-auto">
-    <table className="w-full text-left text-sm">
-      <thead>
-        <tr className="border-b text-slate-500">
-          <th className="py-3 pr-4">AMC</th>
-          <th className="py-3 pr-4">Records</th>
-          <th className="py-3 pr-4">Avg Gross Fee</th>
-          <th className="py-3 pr-4">Avg Net Fee</th>
-          <th className="py-3 pr-4">Avg Turn Time</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {feeByAMC.map((row) => (
-          <tr key={row.amc} className="border-b">
-            <td className="py-3 pr-4">{row.amc}</td>
-            <td className="py-3 pr-4">{row.count}</td>
-            <td className="py-3 pr-4">{money(row.avgGrossFee)}</td>
-            <td className="py-3 pr-4">{money(row.avgNetFee)}</td>
-            <td className="py-3 pr-4">{row.avgTurnTime.toFixed(1)} days</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+     {loading ? (
+  <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+    Loading data...
   </div>
-</div>
-<div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-  <h2 className="mb-4 text-lg font-semibold">Recent Records</h2>
-
-  <div className="overflow-x-auto">
-    <table className="w-full text-left text-sm">
-      <thead>
-        <tr className="border-b text-slate-500">
-          <th className="py-3 pr-4">AMC</th>
-          <th className="py-3 pr-4">Lender</th>
-          <th className="py-3 pr-4">City</th>
-          <th className="py-3 pr-4">State</th>
-          <th className="py-3 pr-4">Type</th>
-          <th className="py-3 pr-4">Value Bucket</th>
-          <th className="py-3 pr-4">Gross Fee</th>
-          <th className="py-3 pr-4">Tech Fee</th>
-          <th className="py-3 pr-4">Net Fee</th>
-          <th className="py-3 pr-4">Turn Time</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {filteredRecords.slice(0, 20).map((r, index) => (
-          <tr key={`${r.City}-${r.State}-${index}`} className="border-b">
-            <td className="py-3 pr-4">{(r as any).AMC || "Direct Order"}</td>
-            <td className="py-3 pr-4">{(r as any).Lender || "Unknown"}</td>
-            <td className="py-3 pr-4">{r.City}</td>
-            <td className="py-3 pr-4">{r.State}</td>
-            <td className="py-3 pr-4">{r["Assignment Type"]}</td>
-            <td className="py-3 pr-4">{r["Value Bucket"]}</td>
-            <td className="py-3 pr-4">{money(Number(r["Fee Total"]))}</td>
-            <td className="py-3 pr-4">{money(Number(r["Technology Fees"]))}</td>
-            <td className="py-3 pr-4">{money(Number(r["Net Fee"]))}</td>
-            <td className="py-3 pr-4">
-              {Number(r["Turn Time (Days)"]).toFixed(1)} days
-            </td>
-          </tr>
-        ))}
-      </tbody>
-       </table>
-   </div>
-</div>
-</div>
-        )}
-      </main>
-  );
+) : (
+  <div>
+    <div className="mb-6 grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+      <StatCard title="Records" value={filteredRecords.length.toString()} />
+      <StatCard title="Avg Gross Fee" value={money(avgGrossFee)} />
+      <StatCard title="Avg Tech Fee" value={money(avgTechFee)} />
+      <StatCard title="Avg Net Fee" value={money(avgNetFee)} />
+      <StatCard title="Avg Turn Time" value={`${avgTurnTime.toFixed(1)} days`} />
+      <StatCard title="Top Form" value={mostCommonType} />
+    </div>
+  </div>
+)}
+</main>
+);
 }
 
 function StatCard({ title, value }: { title: string; value: string }) {
