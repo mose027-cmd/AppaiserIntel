@@ -369,9 +369,7 @@ loan_type: formData.loanType,
         avgNetFee: Math.round(avg(items.map((r) => Number(r["Net Fee"])))),
         avgTurnTime: avg(items.map((r) => Number(r["Turn Time (Days)"]))),
       }))
-      .filter((x) => x.count >= 5)
-      .sort((a, b) => b.avgGrossFee - a.avgGrossFee)
-      .slice(0, 10);
+.sort((a, b) => b.count - a.count);
   }, [filteredRecords]);
 
   const feeByLender = useMemo(() => {
