@@ -14,31 +14,60 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   async function signUp() {
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanEmail || !cleanPassword) {
+      alert("Please enter both email and password.");
+      return;
+    }
+
+    if (cleanPassword.length < 6) {
+      alert("Password must be at least 6 characters.");
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
-      email,
-      password,
+      email: cleanEmail,
+      password: cleanPassword,
     });
 
-    if (error) alert(error.message);
-    else alert("Account created successfully.");
-
     setLoading(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    alert("Account created successfully. You can now sign in.");
   }
 
   async function signIn() {
+    const cleanEmail = email.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanEmail || !cleanPassword) {
+      alert("Please enter both email and password.");
+      return;
+    }
+
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+      email: cleanEmail,
+      password: cleanPassword,
     });
 
-    if (error) alert(error.message);
-    else window.location.href = "/";
-
     setLoading(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    window.location.href = "/";
   }
 
   return (
@@ -52,6 +81,7 @@ export default function LoginPage() {
           <input
             type="email"
             placeholder="Email"
+            autoComplete="email"
             className="w-full rounded-xl border border-slate-300 px-4 py-3"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -60,25 +90,28 @@ export default function LoginPage() {
           <input
             type="password"
             placeholder="Password"
+            autoComplete="current-password"
             className="w-full rounded-xl border border-slate-300 px-4 py-3"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
 
           <button
+            type="button"
             onClick={signIn}
             disabled={loading}
             className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white"
           >
-            Sign In
+            {loading ? "Working..." : "Sign In"}
           </button>
 
           <button
+            type="button"
             onClick={signUp}
             disabled={loading}
             className="w-full rounded-xl border border-slate-300 px-4 py-3 font-semibold"
           >
-            Create Account
+            {loading ? "Working..." : "Create Account"}
           </button>
         </div>
       </div>
