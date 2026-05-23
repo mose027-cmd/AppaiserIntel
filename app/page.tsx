@@ -137,7 +137,7 @@ export default function Home() {
       City: formData.city,
       State: formData.state,
       AMC: formData.amc || "Direct Order",
-      Lender: "Unknown",
+Lender: formData.lender || "Unknown",
       Zip: "",
       "Appraised Value": null,
       "Value Bucket": formData.valueBucket,
