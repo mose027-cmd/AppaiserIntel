@@ -18,34 +18,31 @@ function getLoginValues() {
 }
 
 export default function LoginPage() {
-  async function signUp() {
-    const { email, password } = getLoginValues();
+ async function signUp() {
+  const email = prompt("Enter email") || "";
+  const password = prompt("Enter password") || "";
 
-    if (!email || !password) {
-      alert("Please enter both email and password.");
-      return;
-    }
+  const { error } = await supabase.auth.signUp({
+    email: email.trim(),
+    password: password.trim(),
+  });
 
-    const { error } = await supabase.auth.signUp({ email, password });
+  if (error) alert(error.message);
+  else alert("Account created successfully.");
+}
 
-    if (error) alert(error.message);
-    else alert("Account created successfully. You can now sign in.");
-  }
+async function signIn() {
+  const email = prompt("Enter email") || "";
+  const password = prompt("Enter password") || "";
 
-  async function signIn() {
-    const { email, password } = getLoginValues();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: email.trim(),
+    password: password.trim(),
+  });
 
-    if (!email || !password) {
-      alert("Please enter both email and password.");
-      return;
-    }
-
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) alert(error.message);
-    else window.location.href = "/";
-  }
-
+  if (error) alert(error.message);
+  else window.location.href = "/";
+}
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
       <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl">
