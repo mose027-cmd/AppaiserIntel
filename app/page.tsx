@@ -457,7 +457,7 @@ Submit Data
                 onChange={(e) => setFormData({ ...formData, grossFee: e.target.value })}
               />
               <input
-                placeholder="Tech Fee"
+  placeholder="Technology / Upload Fee"
                 className="rounded-xl border border-slate-300 px-4 py-3"
                 value={formData.techFee}
                 onChange={(e) => setFormData({ ...formData, techFee: e.target.value })}
