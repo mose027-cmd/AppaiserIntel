@@ -68,6 +68,7 @@ export default function Home() {
     city: "",
     state: "",
     amc: "",
+    lender: "",
     assignmentType: "",
     valueBucket: "",
     grossFee: "",
