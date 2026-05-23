@@ -538,12 +538,20 @@ Submit Data
     </p>
   )}
 </div>
-              <input
-                placeholder="Gross Fee"
-                className="rounded-xl border border-slate-300 px-4 py-3"
-                value={formData.grossFee}
-                onChange={(e) => setFormData({ ...formData, grossFee: e.target.value })}
-              />
+<div>
+  <input
+    placeholder="Gross Fee"
+    className="w-full rounded-xl border border-slate-300 px-4 py-3"
+    value={formData.grossFee}
+    onChange={(e) => setFormData({ ...formData, grossFee: e.target.value })}
+  />
+
+  {errors.grossFee && (
+    <p className="mt-1 text-sm text-red-500">
+      {errors.grossFee}
+    </p>
+  )}
+</div>
               <input
   placeholder="Technology / Upload Fee"
                 className="rounded-xl border border-slate-300 px-4 py-3"
