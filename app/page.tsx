@@ -140,6 +140,11 @@ if (!formData.amc.trim()) {
 if (!formData.lender.trim()) {
   newErrors.lender = "Lender is required.";
 }
+
+if (!formData.loanType.trim()) {
+  newErrors.loanType = "Loan type is required.";
+}
+
 if (
   formData.loanType === "Other" &&
   !formData.loanTypeOther?.trim()
