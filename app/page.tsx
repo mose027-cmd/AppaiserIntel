@@ -572,12 +572,20 @@ Submit Data
                   {money((Number(formData.grossFee) || 0) - (Number(formData.techFee) || 0))}
                 </p>
               </div>
-              <input
-                placeholder="Turn Time (Days)"
-                className="rounded-xl border border-slate-300 px-4 py-3"
-                value={formData.turnTime}
-                onChange={(e) => setFormData({ ...formData, turnTime: e.target.value })}
-              />
+<div>
+  <input
+    placeholder="Turn Time (Days)"
+    className="w-full rounded-xl border border-slate-300 px-4 py-3"
+    value={formData.turnTime}
+    onChange={(e) => setFormData({ ...formData, turnTime: e.target.value })}
+  />
+
+  {errors.turnTime && (
+    <p className="mt-1 text-sm text-red-500">
+      {errors.turnTime}
+    </p>
+  )}
+</div>
             </div>
 
             <button
