@@ -176,10 +176,10 @@ const netFee = formData.netFee
 
     const newRecord: BillingRecord = {
       "File No.": `community-${Date.now()}`,
-      City: formData.city,
-      State: formData.state,
-      AMC: formData.amc || "Direct Order",
-Lender: formData.lender || "Unknown",
+City: formData.city.trim(),
+State: formData.state.trim().toUpperCase(),
+AMC: formData.amc.trim(),
+Lender: formData.lender.trim(),
       Zip: "",
       "Appraised Value": null,
       "Value Bucket": formData.valueBucket,
@@ -456,12 +456,17 @@ Submit Data
   value={formData.lender}
   onChange={(e) => setFormData({ ...formData, lender: e.target.value })}
 />
-              <input
-                placeholder="City"
-                className="rounded-xl border border-slate-300 px-4 py-3"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              />
+<div>
+  <input
+    placeholder="City"
+    className="w-full rounded-xl border border-slate-300 px-4 py-3"
+    value={formData.city}
+    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+  />
+  {errors.city && (
+    <p className="mt-1 text-sm text-red-500">{errors.city}</p>
+  )}
+</div>
               <select
                 className="rounded-xl border border-slate-300 px-4 py-3"
                 value={formData.state}
