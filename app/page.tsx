@@ -61,6 +61,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [stateFilter, setStateFilter] = useState("All");
   const [typeFilter, setTypeFilter] = useState("All");
+  const [loanTypeFilter, setLoanTypeFilter] = useState("All");
   const [valueFilter, setValueFilter] = useState("All");
   const [showForm, setShowForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
@@ -252,6 +253,14 @@ loan_type: formData.loanType,
     [records]
   );
 
+  const loanTypes = useMemo(
+    () => [
+      "All",
+      ...Array.from(new Set(records.map((r) => r.loan_type).filter(Boolean))),
+    ],
+    [records]
+  );
+
   const valueBuckets = useMemo(
     () => [
       "All",
@@ -265,10 +274,11 @@ loan_type: formData.loanType,
       return (
         (stateFilter === "All" || r.State === stateFilter) &&
         (typeFilter === "All" || r["Assignment Type"] === typeFilter) &&
+        (loanTypeFilter === "All" || r.loan_type === loanTypeFilter) &&
         (valueFilter === "All" || r["Value Bucket"] === valueFilter)
       );
     });
-  }, [records, stateFilter, typeFilter, valueFilter]);
+  }, [records, stateFilter, typeFilter, loanTypeFilter, valueFilter]);
 
   const avgGrossFee = avg(filteredRecords.map((r) => Number(r["Fee Total"])));
   const avgTechFee = avg(filteredRecords.map((r) => Number(r["Technology Fees"])));
@@ -670,15 +680,25 @@ className={`w-full rounded-xl px-4 py-3 ${
               <option key={state}>{state}</option>
             ))}
           </select>
-          <select
-            className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-          >
-            {assignmentTypes.map((type) => (
-              <option key={type}>{type}</option>
-            ))}
-          </select>
+<select
+  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
+  value={typeFilter}
+  onChange={(e) => setTypeFilter(e.target.value)}
+>
+  {assignmentTypes.map((type) => (
+    <option key={type}>{type}</option>
+  ))}
+</select>
+
+<select
+  className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
+  value={loanTypeFilter}
+  onChange={(e) => setLoanTypeFilter(e.target.value)}
+>
+  {loanTypes.map((loanType) => (
+    <option key={loanType}>{loanType}</option>
+  ))}
+</select>
           <select
             className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm"
             value={valueFilter}
