@@ -552,12 +552,20 @@ Submit Data
     </p>
   )}
 </div>
-              <input
-  placeholder="Technology / Upload Fee"
-                className="rounded-xl border border-slate-300 px-4 py-3"
-                value={formData.techFee}
-                onChange={(e) => setFormData({ ...formData, techFee: e.target.value })}
-              />
+<div>
+  <input
+    placeholder="Technology / Upload Fee"
+    className="w-full rounded-xl border border-slate-300 px-4 py-3"
+    value={formData.techFee}
+    onChange={(e) => setFormData({ ...formData, techFee: e.target.value })}
+  />
+
+  {errors.techFee && (
+    <p className="mt-1 text-sm text-red-500">
+      {errors.techFee}
+    </p>
+  )}
+</div>
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
                 <p className="text-sm text-slate-500">Net Fee</p>
                 <p className="mt-1 text-lg font-semibold text-slate-900">
