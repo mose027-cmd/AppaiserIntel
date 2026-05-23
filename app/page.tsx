@@ -336,16 +336,27 @@ export default function Home() {
         )}
 
         <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-blue-600">
-            Appraiser Intel
-          </p>
-          <h1 className="text-4xl font-bold tracking-tight">
-            Market intelligence for residential appraisers.
-          </h1>
-          <p className="mt-4 max-w-3xl text-slate-600">
-            Benchmark appraisal fees, technology fees, net compensation, and turn times ahead
-            of the UAD 3.6 transition.
-          </p>
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-blue-600">
+                Appraiser Intel
+              </p>
+              <h1 className="text-4xl font-bold tracking-tight">
+                Market intelligence for residential appraisers.
+              </h1>
+              <p className="mt-4 max-w-3xl text-slate-600">
+                Benchmark appraisal fees, technology fees, net compensation, and turn times ahead
+                of the UAD 3.6 transition.
+              </p>
+            </div>
+
+            <a
+              href="/login"
+              className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              Login
+            </a>
+          </div>
         </div>
 
         <div className="mb-8 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
