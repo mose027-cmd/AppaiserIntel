@@ -462,7 +462,11 @@ className={`w-full rounded-xl px-4 py-3 ${
 <div>
   <input
     placeholder="Lender"
-    className="w-full rounded-xl border border-slate-300 px-4 py-3"
+className={`w-full rounded-xl px-4 py-3 ${
+  errors.lender
+    ? "border border-red-500 bg-red-50"
+    : "border border-slate-300"
+}`}
     value={formData.lender}
     onChange={(e) => setFormData({ ...formData, lender: e.target.value })}
   />
