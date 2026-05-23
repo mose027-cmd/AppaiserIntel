@@ -71,6 +71,7 @@ const [formData, setFormData] = useState({
   amc: "",
   lender: "",
   loanType: "",
+  loanTypeOther: "",
   assignmentType: "",
   valueBucket: "",
   grossFee: "",
@@ -139,7 +140,12 @@ if (!formData.amc.trim()) {
 if (!formData.lender.trim()) {
   newErrors.lender = "Lender is required.";
 }
-
+if (
+  formData.loanType === "Other" &&
+  !formData.loanTypeOther?.trim()
+) {
+  newErrors.loanTypeOther = "Please describe loan type.";
+}
 if (!formData.assignmentType.trim()) {
   newErrors.assignmentType = "Assignment type is required.";
 }
@@ -213,6 +219,7 @@ loan_type: formData.loanType,
       amc: "",
       lender: "",
       loanType: "",
+      loanTypeOther: "",
       assignmentType: "",
       valueBucket: "",
       grossFee: "",
@@ -507,6 +514,43 @@ className={`w-full rounded-xl px-4 py-3 ${
 </div>
 <div>
   <select
+    className={`w-full rounded-xl px-4 py-3 ${
+      errors.loanType
+        ? "border border-red-500 bg-red-50"
+        : "border border-slate-300"
+    }`}
+    value={formData.loanType}
+    onChange={(e) => setFormData({ ...formData, loanType: e.target.value })}
+  >
+    <option value="">Select Loan Type</option>
+    <option value="Conventional">Conventional</option>
+    <option value="FHA">FHA</option>
+    <option value="VA">VA</option>
+    <option value="USDA">USDA</option>
+    <option value="Cash">Cash</option>
+    <option value="Seller Financing">Seller Financing</option>
+    <option value="Other">Other</option>
+  </select>
+
+  {errors.loanType && (
+    <p className="mt-1 text-sm text-red-500">
+      {errors.loanType}
+    </p>
+  )}
+
+  {formData.loanType === "Other" && (
+    <input
+      placeholder="Describe Loan Type"
+      className="mt-3 w-full rounded-xl border border-slate-300 px-4 py-3"
+      value={formData.loanTypeOther || ""}
+      onChange={(e) =>
+        setFormData({ ...formData, loanTypeOther: e.target.value })
+      }
+    />
+  )}
+</div>
+<div>
+  <select
     className="w-full rounded-xl border border-slate-300 px-4 py-3"
     value={formData.assignmentType}
     onChange={(e) => setFormData({ ...formData, assignmentType: e.target.value })}
@@ -516,11 +560,10 @@ className={`w-full rounded-xl px-4 py-3 ${
     <option value="1004D / Final">1004D / Final</option>
     <option value="Desktop">Desktop</option>
     <option value="Hybrid">Hybrid</option>
-    <option value="Multi-Family">Multi-Family</option>
+    <option value="2055 Exterior">2055 Exterior</option>
+    <option value="1025 Multi-Family">1025 Multi-Family</option>
+    <option value="1073 Condo">1073 Condo</option>
     <option value="Land">Land</option>
-    <option value="FHA">FHA</option>
-    <option value="VA">VA</option>
-    <option value="Jumbo">Jumbo</option>
     <option value="Complex">Complex</option>
   </select>
 
