@@ -443,19 +443,29 @@ Submit Data
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <input
-  placeholder="AMC"
-  className="rounded-xl border border-slate-300 px-4 py-3"
-  value={formData.amc}
-  onChange={(e) => setFormData({ ...formData, amc: e.target.value })}
-/>
+<div>
+  <input
+    placeholder="AMC"
+    className="w-full rounded-xl border border-slate-300 px-4 py-3"
+    value={formData.amc}
+    onChange={(e) => setFormData({ ...formData, amc: e.target.value })}
+  />
+  {errors.amc && (
+    <p className="mt-1 text-sm text-red-500">{errors.amc}</p>
+  )}
+</div>
 
-<input
-  placeholder="Lender"
-  className="rounded-xl border border-slate-300 px-4 py-3"
-  value={formData.lender}
-  onChange={(e) => setFormData({ ...formData, lender: e.target.value })}
-/>
+<div>
+  <input
+    placeholder="Lender"
+    className="w-full rounded-xl border border-slate-300 px-4 py-3"
+    value={formData.lender}
+    onChange={(e) => setFormData({ ...formData, lender: e.target.value })}
+  />
+  {errors.lender && (
+    <p className="mt-1 text-sm text-red-500">{errors.lender}</p>
+  )}
+</div>
 <div>
   <input
     placeholder="City"
