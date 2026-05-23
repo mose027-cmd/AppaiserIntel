@@ -26,6 +26,7 @@ type BillingRecord = {
   Zip: string | null;
   AMC?: string | null;
   Lender?: string | null;
+  loan_type?: string | null;
   "Appraised Value": number | null;
   "Value Bucket": string | null;
   "Major Form": string | null;
