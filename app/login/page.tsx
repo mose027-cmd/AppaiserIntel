@@ -21,11 +21,8 @@ export default function LoginPage() {
       password,
     });
 
-    if (error) {
-      alert(error.message);
-    } else {
-      alert("Account created successfully.");
-    }
+    if (error) alert(error.message);
+    else alert("Account created successfully.");
 
     setLoading(false);
   }
@@ -38,11 +35,8 @@ export default function LoginPage() {
       password,
     });
 
-    if (error) {
-      alert(error.message);
-    } else {
-      window.location.href = "/";
-    }
+    if (error) alert(error.message);
+    else window.location.href = "/";
 
     setLoading(false);
   }
