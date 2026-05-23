@@ -118,17 +118,51 @@ const [errors, setErrors] = useState<Record<string, string>>({});
   }, []);
 
   async function handleSubmitRecord() {
-    if (
-      !formData.city ||
-      !formData.state ||
-      !formData.assignmentType ||
-      !formData.valueBucket ||
-      !formData.grossFee
-    ) {
-      alert("Please complete City, State, Assignment Type, Value Bucket, and Gross Fee.");
-      return;
-    }
+const newErrors: Record<string, string> = {};
 
+if (!formData.city.trim()) {
+  newErrors.city = "City is required.";
+}
+
+if (!formData.state.trim()) {
+  newErrors.state = "State is required.";
+} else if (formData.state.trim().length !== 2) {
+  newErrors.state = "Use 2-letter abbreviation.";
+}
+
+if (!formData.amc.trim()) {
+  newErrors.amc = "AMC is required.";
+}
+
+if (!formData.lender.trim()) {
+  newErrors.lender = "Lender is required.";
+}
+
+if (!formData.assignmentType.trim()) {
+  newErrors.assignmentType = "Assignment type is required.";
+}
+
+if (!formData.valueBucket.trim()) {
+  newErrors.valueBucket = "Value bucket is required.";
+}
+
+if (!formData.grossFee || Number(formData.grossFee) <= 0) {
+  newErrors.grossFee = "Gross fee must be greater than 0.";
+}
+
+if (formData.techFee === "" || Number(formData.techFee) < 0) {
+  newErrors.techFee = "Tech fee must be 0 or greater.";
+}
+
+if (!formData.turnTime || Number(formData.turnTime) <= 0) {
+  newErrors.turnTime = "Turn time must be greater than 0.";
+}
+
+setErrors(newErrors);
+
+if (Object.keys(newErrors).length > 0) {
+  return;
+}
 const cleanNumber = (value: string) =>
   Number(value.replace(/[^0-9.]/g, "")) || 0;
 
