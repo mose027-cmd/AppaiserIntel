@@ -493,23 +493,31 @@ Submit Data
     <p className="mt-1 text-sm text-red-500">{errors.state}</p>
   )}
 </div>
-                className="rounded-xl border border-slate-300 px-4 py-3"
-                value={formData.assignmentType}
-                onChange={(e) => setFormData({ ...formData, assignmentType: e.target.value })}
-              >
-                <option value="">Select Assignment Type</option>
-                <option value="1004 URAR">1004 URAR</option>
-                <option value="1004D / Final">1004D / Final</option>
-                <option value="Desktop">Desktop</option>
-                <option value="Hybrid">Hybrid</option>
-                <option value="Multi-Family">Multi-Family</option>
-                <option value="Land">Land</option>
-                <option value="FHA">FHA</option>
-                <option value="VA">VA</option>
-                <option value="Jumbo">Jumbo</option>
-                <option value="Complex">Complex</option>
-              </select>
-              <select
+<div>
+  <select
+    className="w-full rounded-xl border border-slate-300 px-4 py-3"
+    value={formData.assignmentType}
+    onChange={(e) => setFormData({ ...formData, assignmentType: e.target.value })}
+  >
+    <option value="">Select Assignment Type</option>
+    <option value="1004 URAR">1004 URAR</option>
+    <option value="1004D / Final">1004D / Final</option>
+    <option value="Desktop">Desktop</option>
+    <option value="Hybrid">Hybrid</option>
+    <option value="Multi-Family">Multi-Family</option>
+    <option value="Land">Land</option>
+    <option value="FHA">FHA</option>
+    <option value="VA">VA</option>
+    <option value="Jumbo">Jumbo</option>
+    <option value="Complex">Complex</option>
+  </select>
+
+  {errors.assignmentType && (
+    <p className="mt-1 text-sm text-red-500">
+      {errors.assignmentType}
+    </p>
+  )}
+</div>
                 className="rounded-xl border border-slate-300 px-4 py-3"
                 value={formData.valueBucket}
                 onChange={(e) => setFormData({ ...formData, valueBucket: e.target.value })}
