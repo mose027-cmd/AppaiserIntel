@@ -64,18 +64,20 @@ export default function Home() {
   const [showForm, setShowForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  const [formData, setFormData] = useState({
-    city: "",
-    state: "",
-    amc: "",
-    lender: "",
-    assignmentType: "",
-    valueBucket: "",
-    grossFee: "",
-    techFee: "",
-    netFee: "",
-    turnTime: "",
-  });
+const [formData, setFormData] = useState({
+  city: "",
+  state: "",
+  amc: "",
+  lender: "",
+  assignmentType: "",
+  valueBucket: "",
+  grossFee: "",
+  techFee: "",
+  netFee: "",
+  turnTime: "",
+});
+
+const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function loadRecords() {
