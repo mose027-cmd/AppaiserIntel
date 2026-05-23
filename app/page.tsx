@@ -446,7 +446,11 @@ Submit Data
 <div>
   <input
     placeholder="AMC"
-    className="w-full rounded-xl border border-slate-300 px-4 py-3"
+className={`w-full rounded-xl px-4 py-3 ${
+  errors.amc
+    ? "border border-red-500 bg-red-50"
+    : "border border-slate-300"
+}`}
     value={formData.amc}
     onChange={(e) => setFormData({ ...formData, amc: e.target.value })}
   />
