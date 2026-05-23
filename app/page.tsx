@@ -401,7 +401,6 @@ Submit Data
 
             <div className="grid gap-4 md:grid-cols-2">
               <input
-<input
   placeholder="AMC"
   className="rounded-xl border border-slate-300 px-4 py-3"
   value={formData.amc}
