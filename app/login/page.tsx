@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -7,42 +8,67 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-function getLoginValues() {
-  const emailInput = document.getElementById("email") as HTMLInputElement | null;
-  const passwordInput = document.getElementById("password") as HTMLInputElement | null;
-
-  return {
-    email: emailInput?.value.trim() || "",
-    password: passwordInput?.value.trim() || "",
-  };
-}
-
 export default function LoginPage() {
- async function signUp() {
-  const email = prompt("Enter email") || "";
-  const password = prompt("Enter password") || "";
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(false);
 
-  const { error } = await supabase.auth.signUp({
-    email: email.trim(),
-    password: password.trim(),
-  });
+  function getValues() {
+    return {
+      email: emailRef.current?.value.trim() || "",
+      password: passwordRef.current?.value.trim() || "",
+    };
+  }
 
-  if (error) alert(error.message);
-  else alert("Account created successfully.");
-}
+  async function signUp() {
+    const { email, password } = getValues();
 
-async function signIn() {
-  const email = prompt("Enter email") || "";
-  const password = prompt("Enter password") || "";
+    if (!email || !password) {
+      alert("Please enter both email and password.");
+      return;
+    }
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email: email.trim(),
-    password: password.trim(),
-  });
+    if (password.length < 6) {
+      alert("Password must be at least 6 characters.");
+      return;
+    }
 
-  if (error) alert(error.message);
-  else window.location.href = "/";
-}
+    setLoading(true);
+
+    const { error } = await supabase.auth.signUp({ email, password });
+
+    setLoading(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    alert("Account created successfully. You can now sign in.");
+  }
+
+  async function signIn() {
+    const { email, password } = getValues();
+
+    if (!email || !password) {
+      alert("Please enter both email and password.");
+      return;
+    }
+
+    setLoading(true);
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    setLoading(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    window.location.href = "/";
+  }
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-100 p-6">
       <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl">
@@ -52,33 +78,37 @@ async function signIn() {
 
         <div className="space-y-4">
           <input
-            id="email"
+            ref={emailRef}
             type="email"
             placeholder="Email"
+            autoComplete="email"
             className="w-full rounded-xl border border-slate-300 px-4 py-3"
           />
 
           <input
-            id="password"
+            ref={passwordRef}
             type="password"
             placeholder="Password"
+            autoComplete="current-password"
             className="w-full rounded-xl border border-slate-300 px-4 py-3"
           />
 
           <button
             type="button"
             onClick={signIn}
+            disabled={loading}
             className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white"
           >
-            Sign In
+            {loading ? "Working..." : "Sign In"}
           </button>
 
           <button
             type="button"
             onClick={signUp}
+            disabled={loading}
             className="w-full rounded-xl border border-slate-300 px-4 py-3 font-semibold"
           >
-            Create Account
+            {loading ? "Working..." : "Create Account"}
           </button>
         </div>
       </div>
