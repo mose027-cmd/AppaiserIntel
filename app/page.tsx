@@ -477,17 +477,22 @@ Submit Data
     <p className="mt-1 text-sm text-red-500">{errors.city}</p>
   )}
 </div>
-              <select
-                className="rounded-xl border border-slate-300 px-4 py-3"
-                value={formData.state}
-                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-              >
-                <option value="">Select State</option>
-                <option value="OH">OH</option>
-                <option value="KY">KY</option>
-                <option value="IN">IN</option>
-              </select>
-              <select
+<div>
+  <select
+    className="w-full rounded-xl border border-slate-300 px-4 py-3"
+    value={formData.state}
+    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+  >
+    <option value="">Select State</option>
+    <option value="OH">OH</option>
+    <option value="KY">KY</option>
+    <option value="IN">IN</option>
+  </select>
+
+  {errors.state && (
+    <p className="mt-1 text-sm text-red-500">{errors.state}</p>
+  )}
+</div>
                 className="rounded-xl border border-slate-300 px-4 py-3"
                 value={formData.assignmentType}
                 onChange={(e) => setFormData({ ...formData, assignmentType: e.target.value })}
