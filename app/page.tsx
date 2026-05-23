@@ -369,11 +369,20 @@ export default function Home() {
               </p>
             </div>
             <button
-              onClick={() => setShowForm(true)}
-              className="rounded-2xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700"
-            >
-              Submit Data
-            </button>
+   onClick={async () => {
+  const { data } = await supabase.auth.getUser();
+
+  if (!data.user) {
+    window.location.href = "/login";
+    return;
+  }
+
+  setShowForm(true);
+}}
+className="rounded-2xl bg-blue-600 px-6 py-3 font-medium text-white transition hover:bg-blue-700"
+>
+Submit Data
+</button>
           </div>
         </div>
 
