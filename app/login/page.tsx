@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -9,30 +9,32 @@ const supabase = createClient(
 );
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [loading, setLoading] = useState(false);
 
-  async function signUp() {
-    const cleanEmail = email.trim();
-    const cleanPassword = password.trim();
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-    if (!cleanEmail || !cleanPassword) {
+    const form = new FormData(event.currentTarget);
+    const email = String(form.get("email") || "").trim();
+    const password = String(form.get("password") || "").trim();
+
+    if (!email || !password) {
       alert("Please enter both email and password.");
       return;
     }
 
-    if (cleanPassword.length < 6) {
+    if (mode === "signup" && password.length < 6) {
       alert("Password must be at least 6 characters.");
       return;
     }
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email: cleanEmail,
-      password: cleanPassword,
-    });
+    const { error } =
+      mode === "signup"
+        ? await supabase.auth.signUp({ email, password })
+        : await supabase.auth.signInWithPassword({ email, password });
 
     setLoading(false);
 
@@ -41,29 +43,9 @@ export default function LoginPage() {
       return;
     }
 
-    alert("Account created successfully. You can now sign in.");
-  }
-
-  async function signIn() {
-    const cleanEmail = email.trim();
-    const cleanPassword = password.trim();
-
-    if (!cleanEmail || !cleanPassword) {
-      alert("Please enter both email and password.");
-      return;
-    }
-
-    setLoading(true);
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email: cleanEmail,
-      password: cleanPassword,
-    });
-
-    setLoading(false);
-
-    if (error) {
-      alert(error.message);
+    if (mode === "signup") {
+      alert("Account created successfully. You can now sign in.");
+      setMode("signin");
       return;
     }
 
@@ -77,43 +59,41 @@ export default function LoginPage() {
           AppraiserIntel Login
         </h1>
 
-        <div className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
+            name="email"
             type="email"
             placeholder="Email"
             autoComplete="email"
             className="w-full rounded-xl border border-slate-300 px-4 py-3"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
           />
 
           <input
+            name="password"
             type="password"
             placeholder="Password"
             autoComplete="current-password"
             className="w-full rounded-xl border border-slate-300 px-4 py-3"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
           />
 
           <button
-            type="button"
-            onClick={signIn}
+            type="submit"
             disabled={loading}
+            onClick={() => setMode("signin")}
             className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white"
           >
-            {loading ? "Working..." : "Sign In"}
+            {loading && mode === "signin" ? "Working..." : "Sign In"}
           </button>
 
           <button
-            type="button"
-            onClick={signUp}
+            type="submit"
             disabled={loading}
+            onClick={() => setMode("signup")}
             className="w-full rounded-xl border border-slate-300 px-4 py-3 font-semibold"
           >
-            {loading ? "Working..." : "Create Account"}
+            {loading && mode === "signup" ? "Working..." : "Create Account"}
           </button>
-        </div>
+        </form>
       </div>
     </main>
   );
