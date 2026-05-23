@@ -1,6 +1,5 @@
 "use client";
 
-import { FormEvent, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -8,48 +7,43 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+function getLoginValues() {
+  const emailInput = document.getElementById("email") as HTMLInputElement | null;
+  const passwordInput = document.getElementById("password") as HTMLInputElement | null;
+
+  return {
+    email: emailInput?.value.trim() || "",
+    password: passwordInput?.value.trim() || "",
+  };
+}
+
 export default function LoginPage() {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [loading, setLoading] = useState(false);
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const form = new FormData(event.currentTarget);
-    const email = String(form.get("email") || "").trim();
-    const password = String(form.get("password") || "").trim();
+  async function signUp() {
+    const { email, password } = getLoginValues();
 
     if (!email || !password) {
       alert("Please enter both email and password.");
       return;
     }
 
-    if (mode === "signup" && password.length < 6) {
-      alert("Password must be at least 6 characters.");
+    const { error } = await supabase.auth.signUp({ email, password });
+
+    if (error) alert(error.message);
+    else alert("Account created successfully. You can now sign in.");
+  }
+
+  async function signIn() {
+    const { email, password } = getLoginValues();
+
+    if (!email || !password) {
+      alert("Please enter both email and password.");
       return;
     }
 
-    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-    const { error } =
-      mode === "signup"
-        ? await supabase.auth.signUp({ email, password })
-        : await supabase.auth.signInWithPassword({ email, password });
-
-    setLoading(false);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    if (mode === "signup") {
-      alert("Account created successfully. You can now sign in.");
-      setMode("signin");
-      return;
-    }
-
-    window.location.href = "/";
+    if (error) alert(error.message);
+    else window.location.href = "/";
   }
 
   return (
@@ -59,41 +53,37 @@ export default function LoginPage() {
           AppraiserIntel Login
         </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <input
-            name="email"
+            id="email"
             type="email"
             placeholder="Email"
-            autoComplete="email"
             className="w-full rounded-xl border border-slate-300 px-4 py-3"
           />
 
           <input
-            name="password"
+            id="password"
             type="password"
             placeholder="Password"
-            autoComplete="current-password"
             className="w-full rounded-xl border border-slate-300 px-4 py-3"
           />
 
           <button
-            type="submit"
-            disabled={loading}
-            onClick={() => setMode("signin")}
+            type="button"
+            onClick={signIn}
             className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white"
           >
-            {loading && mode === "signin" ? "Working..." : "Sign In"}
+            Sign In
           </button>
 
           <button
-            type="submit"
-            disabled={loading}
-            onClick={() => setMode("signup")}
+            type="button"
+            onClick={signUp}
             className="w-full rounded-xl border border-slate-300 px-4 py-3 font-semibold"
           >
-            {loading && mode === "signup" ? "Working..." : "Create Account"}
+            Create Account
           </button>
-        </form>
+        </div>
       </div>
     </main>
   );
