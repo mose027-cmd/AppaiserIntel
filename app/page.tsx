@@ -127,10 +127,16 @@ export default function Home() {
       return;
     }
 
-    const grossFee = Number(formData.grossFee) || 0;
-    const techFee = Number(formData.techFee) || 0;
-    const netFee = formData.netFee ? Number(formData.netFee) : grossFee - techFee;
-    const turnTime = Number(formData.turnTime) || 0;
+const cleanNumber = (value: string) =>
+  Number(value.replace(/[^0-9.]/g, "")) || 0;
+
+const grossFee = cleanNumber(formData.grossFee);
+const techFee = cleanNumber(formData.techFee);
+const turnTime = cleanNumber(formData.turnTime);
+
+const netFee = formData.netFee
+  ? cleanNumber(formData.netFee)
+  : grossFee - techFee;
 
     const newRecord: BillingRecord = {
       "File No.": `community-${Date.now()}`,
