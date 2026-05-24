@@ -23,6 +23,7 @@ type BillingRecord = {
   "File No.": string;
   City: string | null;
   State: string | null;
+  County?: string | null;
   Zip: string | null;
   AMC?: string | null;
   Lender?: string | null;
