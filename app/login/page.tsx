@@ -30,7 +30,13 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: "http://localhost:3000/login",
+      },
+    });
 
     setLoading(false);
 
@@ -38,6 +44,8 @@ export default function LoginPage() {
       alert(error.message);
       return;
     }
+
+    alert("Check your email to verify your account before logging in.");
 
     alert("Account created successfully. You can now sign in.");
   }
