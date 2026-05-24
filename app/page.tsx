@@ -64,6 +64,7 @@ export default function Home() {
   const [loanTypeFilter, setLoanTypeFilter] = useState("All");
   const [countyFilter, setCountyFilter] = useState("All");
   const [valueFilter, setValueFilter] = useState("All");
+  const [lenderSort, setLenderSort] = useState("count");
   const [showForm, setShowForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -320,7 +321,7 @@ loan_type: formData.loanType,
       avgGrossFee: Math.round(avg(items.map((r) => Number(r["Fee Total"])))),
       avgNetFee: Math.round(avg(items.map((r) => Number(r["Net Fee"])))),
     }));
-  }, [filteredRecords]);
+  }, [filteredRecords, lenderSort]);
 
   const feeByType = useMemo(() => {
     const grouped: Record<string, BillingRecord[]> = {};
@@ -399,7 +400,12 @@ loan_type: formData.loanType,
         avgNetFee: Math.round(avg(items.map((r) => Number(r["Net Fee"])))),
         avgTurnTime: avg(items.map((r) => Number(r["Turn Time (Days)"]))),
       }))
-.sort((a, b) => b.count - a.count);
+.sort((a, b) => {
+  if (lenderSort === "gross") return b.avgGrossFee - a.avgGrossFee;
+  if (lenderSort === "net") return b.avgNetFee - a.avgNetFee;
+  if (lenderSort === "turnTime") return a.avgTurnTime - b.avgTurnTime;
+  return b.count - a.count;
+});
   }, [filteredRecords]);
 
   return (
@@ -800,7 +806,19 @@ className={`w-full rounded-xl px-4 py-3 ${
               </table>
             </DataTableCard>
 
-            <DataTableCard title="Top Lenders by Average Gross Fee">
+            <DataTableCard title={`Top Lenders by ${lenderSort === "count" ? "Record Count" : lenderSort === "gross" ? "Average Gross Fee" : lenderSort === "net" ? "Average Net Fee" : "Fastest Turn Time"}`}>
+                            <div className="mb-4 flex justify-end">
+                <select
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                  value={lenderSort}
+                  onChange={(e) => setLenderSort(e.target.value)}
+                >
+                  <option value="count">Most Records</option>
+                  <option value="gross">Highest Gross Fee</option>
+                  <option value="net">Highest Net Fee</option>
+                  <option value="turnTime">Fastest Turn Time</option>
+                </select>
+              </div>
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b text-slate-500">
