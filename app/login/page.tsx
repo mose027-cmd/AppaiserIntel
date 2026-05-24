@@ -1,80 +1,56 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
 export default function LoginPage() {
-  const emailRef = useRef<HTMLInputElement>(null);
-  const passwordRef = useRef<HTMLInputElement>(null);
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-
-  function getValues() {
-    return {
-      email: emailRef.current?.value.trim() || "",
-      password: passwordRef.current?.value.trim() || "",
-    };
-  }
-
-  async function signUp() {
-    const { email, password } = getValues();
-
-    if (!email || !password) {
-      alert("Please enter both email and password.");
-      return;
-    }
-
-if (password.length < 6) {
-  setErrorMessage("Password must be at least 6 characters.");
-  setMessage("");
-  return;
-}
-
-    setLoading(true);
-
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: "http://localhost:3000/login",
-      },
-    });
-
-    setLoading(false);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-setMessage("Check your email to verify your account before logging in.");
-setErrorMessage("");
-
-  }
+  const [loading, setLoading] = useState(false);
 
   async function signIn() {
-    const { email, password } = getValues();
-
-if (!email || !password) {
-  setErrorMessage("Please enter both email and password.");
-  setMessage("");
-  return;
-}
-
     setLoading(true);
+    setMessage("");
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    try {
+const response = await fetch(
 
-    setLoading(false);
+  "https://lyibzziciksphcgrjdgm.supabase.co/auth/v1/token?grant_type=password",
+{
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+apikey: "sb_publishable_FvMSUZwZcDAin4783xDsWA_NtOydzlr",
+          },
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
-if (error) {
-  setErrorMessage(error.message);
-  setMessage("");
-  return;
-}
+      const result = await response.json();
 
-window.location.href = "/dashboard";
+      if (!response.ok) {
+        setMessage(result.error_description || result.msg || "Login failed");
+        return;
+      }
+
+      await supabase.auth.setSession({
+        access_token: result.access_token,
+        refresh_token: result.refresh_token,
+      });
+localStorage.setItem(
+  "sb-lyibzziciksphcgrjdgm-auth-token",
+  JSON.stringify(result)
+);
+setTimeout(() => {
+  window.location.href = "/dashboard";
+}, 500);
+    } catch (err) {
+      console.error(err);
+      setMessage("Login failed.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -86,23 +62,22 @@ window.location.href = "/dashboard";
 
         <div className="space-y-4">
           <input
-            ref={emailRef}
             type="email"
             placeholder="Email"
-            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-xl border border-slate-300 px-4 py-3"
           />
 
           <input
-            ref={passwordRef}
             type="password"
             placeholder="Password"
-            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full rounded-xl border border-slate-300 px-4 py-3"
           />
 
           <button
-            type="button"
             onClick={signIn}
             disabled={loading}
             className="w-full rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white"
@@ -110,14 +85,11 @@ window.location.href = "/dashboard";
             {loading ? "Working..." : "Sign In"}
           </button>
 
-          <button
-            type="button"
-            onClick={signUp}
-            disabled={loading}
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 font-semibold"
-          >
-            {loading ? "Working..." : "Create Account"}
-          </button>
+          {message && (
+            <div className="rounded-xl bg-slate-100 p-4 text-sm">
+              {message}
+            </div>
+          )}
         </div>
       </div>
     </main>

@@ -22,30 +22,41 @@ export default function SubmitPage() {
 
     setLoading(true);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+const storedSession = localStorage.getItem(
+  "sb-lyibzziciksphcgrjdgm-auth-token"
+);
 
+if (!storedSession) {
+  alert("Please login first.");
+  window.location.href = "/login";
+  return;
+}
+
+const parsedSession = JSON.parse(storedSession);
+const user = parsedSession.user;
     if (!user) {
       alert("Please login first.");
       window.location.href = "/login";
       return;
     }
 
-    const { error } = await supabase.from("submissions").insert([
-      {
-        user_id: user.id,
-        amc: formData.amc,
-        lender: formData.lender,
-        assignment_type: formData.assignment_type,
-        gross_fee: Number(formData.gross_fee),
-        tech_fee: Number(formData.tech_fee),
-        net_fee: Number(formData.net_fee),
-        turn_time: Number(formData.turn_time),
-        revision_rounds: Number(formData.revision_rounds),
-      },
-    ]);
-
+const { error } = await supabase
+  .from("submissions")
+  .insert([
+    {
+      user_id: user.id,
+      amc: formData.amc,
+      lender: formData.lender,
+      assignment_type: formData.assignment_type,
+      gross_fee: Number(formData.gross_fee),
+      tech_fee: Number(formData.tech_fee),
+      net_fee: Number(formData.net_fee),
+      turn_time: Number(formData.turn_time),
+      revision_rounds: Number(formData.revision_rounds),
+    },
+  ])
+  .select();
+console.log("INSERT ERROR:", error);
     setLoading(false);
 
     if (error) {
@@ -53,8 +64,7 @@ export default function SubmitPage() {
       return;
     }
 
-    alert("Submission added successfully.");
-
+window.location.href = "/dashboard";
     setFormData({
       amc: "",
       lender: "",
