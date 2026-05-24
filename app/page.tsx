@@ -374,7 +374,8 @@ loan_type: formData.loanType,
       grouped[amc].push(r);
     });
 
-    return Object.entries(grouped)
+return Object.entries(grouped)
+  .filter(([, items]) => items.length >= 10)
       .map(([amc, items]) => ({
         amc,
         count: items.length,
@@ -400,6 +401,7 @@ loan_type: formData.loanType,
     });
 
     return Object.entries(grouped)
+      .filter(([, items]) => items.length >= 10)
       .map(([lender, items]) => ({
         lender,
         count: items.length,
