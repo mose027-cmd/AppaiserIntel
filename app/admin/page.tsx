@@ -14,7 +14,7 @@ type Profile = {
 
 export default function AdminPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
-
+const [loading, setLoading] = useState(true);
 useEffect(() => {
   checkAdmin();
 }, []);
@@ -24,10 +24,11 @@ async function checkAdmin() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    window.location.href = "/login";
-    return;
-  }
+if (!user) {
+  setLoading(false);
+  window.location.href = "/login";
+  return;
+}
 
   if (user.email !== "rmosely@dmappraisal.com") {
     alert("Unauthorized");
@@ -35,7 +36,8 @@ async function checkAdmin() {
     return;
   }
 
-  loadProfiles();
+await loadProfiles();
+setLoading(false);
 }
 
   async function loadProfiles() {
