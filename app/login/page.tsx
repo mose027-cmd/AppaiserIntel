@@ -7,6 +7,8 @@ export default function LoginPage() {
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   function getValues() {
     return {
@@ -23,10 +25,11 @@ export default function LoginPage() {
       return;
     }
 
-    if (password.length < 6) {
-      alert("Password must be at least 6 characters.");
-      return;
-    }
+if (password.length < 6) {
+  setErrorMessage("Password must be at least 6 characters.");
+  setMessage("");
+  return;
+}
 
     setLoading(true);
 
@@ -45,18 +48,19 @@ export default function LoginPage() {
       return;
     }
 
-    alert("Check your email to verify your account before logging in.");
+setMessage("Check your email to verify your account before logging in.");
+setErrorMessage("");
 
-    alert("Account created successfully. You can now sign in.");
   }
 
   async function signIn() {
     const { email, password } = getValues();
 
-    if (!email || !password) {
-      alert("Please enter both email and password.");
-      return;
-    }
+if (!email || !password) {
+  setErrorMessage("Please enter both email and password.");
+  setMessage("");
+  return;
+}
 
     setLoading(true);
 
@@ -64,10 +68,11 @@ export default function LoginPage() {
 
     setLoading(false);
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
+if (error) {
+  setErrorMessage(error.message);
+  setMessage("");
+  return;
+}
 
 window.location.href = "/dashboard";
   }
