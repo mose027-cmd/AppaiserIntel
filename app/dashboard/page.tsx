@@ -3,8 +3,25 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
+type Metrics = {
+  total: number;
+  avgGrossFee: number;
+  avgTechFee: number;
+  avgNetFee: number;
+  avgTurnTime: number;
+  avgRevisionRounds: number;
+};
+
 export default function DashboardPage() {
   const [email, setEmail] = useState("");
+  const [metrics, setMetrics] = useState<Metrics>({
+    total: 0,
+    avgGrossFee: 0,
+    avgTechFee: 0,
+    avgNetFee: 0,
+    avgTurnTime: 0,
+    avgRevisionRounds: 0,
+  });
 
   useEffect(() => {
     async function loadUser() {
@@ -35,10 +52,47 @@ export default function DashboardPage() {
         window.location.href = "/verify";
         return;
       }
+
+      loadMetrics(user.id);
     }
 
     loadUser();
   }, []);
+
+  async function loadMetrics(userId: string) {
+    const { data, error } = await supabase
+      .from("submissions")
+      .select("gross_fee, tech_fee, net_fee, turn_time, revision_rounds")
+      .eq("user_id", userId);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    const submissions = data || [];
+    const total = submissions.length;
+
+    function average(field: keyof (typeof submissions)[number]) {
+      if (total === 0) return 0;
+
+      const sum = submissions.reduce((acc, item) => {
+        const value = Number(item[field] || 0);
+        return acc + value;
+      }, 0);
+
+      return Math.round(sum / total);
+    }
+
+    setMetrics({
+      total,
+      avgGrossFee: average("gross_fee"),
+      avgTechFee: average("tech_fee"),
+      avgNetFee: average("net_fee"),
+      avgTurnTime: average("turn_time"),
+      avgRevisionRounds: average("revision_rounds"),
+    });
+  }
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -72,25 +126,27 @@ export default function DashboardPage() {
         <div className="grid gap-5 md:grid-cols-4">
           <div className="rounded-3xl bg-white p-6 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Total Submissions</p>
-            <p className="mt-3 text-3xl font-bold text-slate-900">0</p>
+            <p className="mt-3 text-3xl font-bold text-slate-900">{metrics.total}</p>
             <p className="mt-2 text-sm text-slate-500">Contributor records</p>
           </div>
 
           <div className="rounded-3xl bg-white p-6 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Avg Gross Fee</p>
-            <p className="mt-3 text-3xl font-bold text-slate-900">$0</p>
+            <p className="mt-3 text-3xl font-bold text-slate-900">${metrics.avgGrossFee}</p>
             <p className="mt-2 text-sm text-slate-500">Before technology fees</p>
           </div>
 
           <div className="rounded-3xl bg-white p-6 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Avg Net Fee</p>
-            <p className="mt-3 text-3xl font-bold text-slate-900">$0</p>
+            <p className="mt-3 text-3xl font-bold text-slate-900">${metrics.avgNetFee}</p>
             <p className="mt-2 text-sm text-slate-500">After technology fees</p>
           </div>
 
           <div className="rounded-3xl bg-white p-6 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Avg Turn Time</p>
-            <p className="mt-3 text-3xl font-bold text-slate-900">0 days</p>
+            <p className="mt-3 text-3xl font-bold text-slate-900">
+              {metrics.avgTurnTime} days
+            </p>
             <p className="mt-2 text-sm text-slate-500">Assignment to delivery</p>
           </div>
         </div>
@@ -104,8 +160,24 @@ export default function DashboardPage() {
               Fee trends, AMC operational benchmarks, lender patterns, and revision burden analytics will appear here as verified contributor data grows.
             </p>
 
-            <div className="mt-6 rounded-2xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
-              Analytics charts coming next
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200 p-5">
+                <p className="text-sm font-medium text-slate-500">
+                  Avg Technology Fee
+                </p>
+                <p className="mt-2 text-2xl font-bold text-slate-900">
+                  ${metrics.avgTechFee}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 p-5">
+                <p className="text-sm font-medium text-slate-500">
+                  Avg Revision Rounds
+                </p>
+                <p className="mt-2 text-2xl font-bold text-slate-900">
+                  {metrics.avgRevisionRounds}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -120,6 +192,13 @@ export default function DashboardPage() {
             <div className="mt-6 rounded-2xl bg-green-50 p-4 text-green-800">
               Approved Contributor
             </div>
+
+            <a
+              href="/submit"
+              className="mt-4 block rounded-xl bg-blue-600 px-4 py-3 text-center font-semibold text-white"
+            >
+              Submit Assignment Data
+            </a>
           </div>
         </div>
       </div>
