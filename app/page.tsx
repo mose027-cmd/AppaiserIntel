@@ -376,7 +376,7 @@ loan_type: formData.loanType,
 
 return Object.entries(grouped)
   .filter(([, items]) => items.length >= 10)
-      .map(([amc, items]) => ({
+  .map(([amc, items]) => ({
         amc,
         count: items.length,
         avgGrossFee: Math.round(avg(items.map((r) => Number(r["Fee Total"])))),
