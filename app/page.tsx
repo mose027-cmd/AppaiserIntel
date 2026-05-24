@@ -322,7 +322,7 @@ loan_type: formData.loanType,
       avgGrossFee: Math.round(avg(items.map((r) => Number(r["Fee Total"])))),
       avgNetFee: Math.round(avg(items.map((r) => Number(r["Net Fee"])))),
     }));
-  }, [filteredRecords, lenderSort]);
+  }, [filteredRecords]);
 
   const feeByType = useMemo(() => {
     const grouped: Record<string, BillingRecord[]> = {};
@@ -407,7 +407,7 @@ loan_type: formData.loanType,
   if (lenderSort === "turnTime") return a.avgTurnTime - b.avgTurnTime;
   return b.count - a.count;
 });
-  }, [filteredRecords]);
+  }, [filteredRecords, lenderSort]);
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
