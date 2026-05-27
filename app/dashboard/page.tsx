@@ -2,12 +2,22 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import DashboardShell from "../../components/DashboardShell";
+
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  BarChart,
+  Bar,
+} from "recharts";
 
 type Submission = {
   id: string;
-  user_id?: string;
-  city?: string | null;
-  state?: string | null;
   amc?: string | null;
   lender?: string | null;
   assignment_type?: string | null;
@@ -221,8 +231,8 @@ const { data, error } = await supabase
 
   const recentSubmissions = submissions.slice(0, 6);
 
-  return (
-    <main className="min-h-screen bg-slate-50 px-6 py-8 text-slate-950">
+return (
+<DashboardShell>
       <div className="mx-auto max-w-7xl">
         <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -478,7 +488,7 @@ const { data, error } = await supabase
           </div>
         </section>
       </div>
-    </main>
+</DashboardShell>
   );
 }
 
