@@ -1,23 +1,116 @@
 "use client";
 
+import { useMemo, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 import DashboardShell from "../../components/DashboardShell";
 
 const verificationSteps = [
   {
     title: "Identity Details",
-    description: "Contributor name, email, and license number are collected for verification.",
+    description:
+      "Contributor name, email, and license number are collected for verification.",
   },
   {
     title: "License Documentation",
-    description: "A PDF copy of the appraiser license is uploaded for review.",
+    description:
+      "A PDF copy of the appraiser license is uploaded for review.",
   },
   {
     title: "Contributor Review",
-    description: "Verification confirms appraiser-only access to the intelligence layer.",
+    description:
+      "Verification confirms appraiser-only access to the intelligence layer.",
   },
 ];
 
 export default function NetworkPage() {
+  const supabase = useMemo(
+    () =>
+      createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      ),
+    []
+  );
+
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    licenseNumber: "",
+  });
+
+  const [licenseFile, setLicenseFile] = useState<File | null>(null);
+
+  async function handleSubmit() {
+    try {
+      setLoading(true);
+      setSuccessMessage("");
+
+      if (
+        !formData.fullName ||
+        !formData.email ||
+        !formData.licenseNumber ||
+        !licenseFile
+      ) {
+        alert("Please complete all fields and upload your license PDF.");
+        return;
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        alert("User session not found.");
+        return;
+      }
+
+      const filePath = `${user.id}/${Date.now()}-${licenseFile.name}`;
+
+      const { error: uploadError } = await supabase.storage
+.from("license-pdfs")
+        .upload(filePath, licenseFile);
+
+      if (uploadError) {
+        alert(uploadError.message);
+        return;
+      }
+
+      const { error: dbError } = await supabase
+        .from("verification_requests")
+        .insert([
+          {
+            user_id: user.id,
+            full_name: formData.fullName,
+            email: formData.email,
+            license_number: formData.licenseNumber,
+            license_file_path: filePath,
+          },
+        ]);
+
+      if (dbError) {
+        alert(dbError.message);
+        return;
+      }
+
+      setSuccessMessage(
+        "Verification request submitted successfully."
+      );
+
+      setFormData({
+        fullName: "",
+        email: "",
+        licenseNumber: "",
+      });
+
+      setLicenseFile(null);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <DashboardShell>
       <div className="space-y-8">
@@ -37,10 +130,29 @@ export default function NetworkPage() {
         </section>
 
         <section className="grid gap-6 md:grid-cols-4">
-          <MetricCard title="Verification Status" value="Pending" subtitle="Contributor review stage" />
-          <MetricCard title="Access Layer" value="Private" subtitle="Appraiser-only intelligence access" />
-          <MetricCard title="License Review" value="Required" subtitle="PDF license verification" />
-          <MetricCard title="Contributor Role" value="Verified" subtitle="Network participation standard" />
+          <MetricCard
+            title="Verification Status"
+            value="Pending"
+            subtitle="Contributor review stage"
+          />
+
+          <MetricCard
+            title="Access Layer"
+            value="Private"
+            subtitle="Appraiser-only intelligence access"
+          />
+
+          <MetricCard
+            title="License Review"
+            value="Required"
+            subtitle="PDF license verification"
+          />
+
+          <MetricCard
+            title="Contributor Role"
+            value="Verified"
+            subtitle="Network participation standard"
+          />
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
@@ -55,28 +167,65 @@ export default function NetworkPage() {
             </p>
 
             <div className="mt-8 space-y-5">
-              <Input label="Full Name" placeholder="Contributor name" />
-              <Input label="Email" placeholder="Contributor email" />
-              <Input label="License Number" placeholder="Appraiser license number" />
+              <Input
+                label="Full Name"
+                placeholder="Contributor name"
+                value={formData.fullName}
+                onChange={(value) =>
+                  setFormData({ ...formData, fullName: value })
+                }
+              />
+
+              <Input
+                label="Email"
+                placeholder="Contributor email"
+                value={formData.email}
+                onChange={(value) =>
+                  setFormData({ ...formData, email: value })
+                }
+              />
+
+              <Input
+                label="License Number"
+                placeholder="Appraiser license number"
+                value={formData.licenseNumber}
+                onChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    licenseNumber: value,
+                  })
+                }
+              />
 
               <div>
                 <p className="mb-2 text-sm font-medium text-slate-600">
                   License PDF
                 </p>
 
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-                  <p className="text-sm font-semibold text-slate-950">
-                    Upload license documentation
-                  </p>
-
-                  <p className="mt-2 text-sm text-slate-500">
-                    PDF upload workflow placeholder for appraiser license review.
-                  </p>
-                </div>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) =>
+                    setLicenseFile(e.target.files?.[0] || null)
+                  }
+                  className="block w-full rounded-2xl border border-slate-200 bg-white px-5 py-4"
+                />
               </div>
 
-              <button className="rounded-2xl bg-slate-950 px-6 py-3 font-medium text-white transition hover:bg-slate-800">
-                Submit Verification Request
+              {successMessage && (
+                <div className="rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-medium text-green-700">
+                  {successMessage}
+                </div>
+              )}
+
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="rounded-2xl bg-slate-950 px-6 py-3 font-medium text-white transition hover:bg-slate-800 disabled:opacity-50"
+              >
+                {loading
+                  ? "Submitting..."
+                  : "Submit Verification Request"}
               </button>
             </div>
           </div>
@@ -130,7 +279,9 @@ function MetricCard({
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
       <p className="text-sm text-slate-500">{title}</p>
+
       <p className="mt-3 text-3xl font-bold text-slate-950">{value}</p>
+
       <p className="mt-3 text-sm text-slate-500">{subtitle}</p>
     </div>
   );
@@ -139,15 +290,22 @@ function MetricCard({
 function Input({
   label,
   placeholder,
+  value,
+  onChange,
 }: {
   label: string;
   placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
 }) {
   return (
     <div>
       <p className="mb-2 text-sm font-medium text-slate-600">{label}</p>
+
       <input
         placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 text-slate-950 outline-none transition focus:border-slate-950"
       />
     </div>
