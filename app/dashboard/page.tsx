@@ -305,9 +305,10 @@ return (
         <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-xl font-bold text-slate-950">Lender & AMC Intelligence</h2>
+              <h2 className="text-xl font-bold text-slate-950">Compensation & Operational Intelligence
+              </h2>
               <p className="mt-1 text-sm text-slate-600">
-                Ranked by average net fee after reported technology or upload fees.
+Aggregated contributor benchmarks across compensation, technology fees, turn cycles, and revision activity.
               </p>
             </div>
 
@@ -374,8 +375,8 @@ return (
 
         <section className="mt-8 grid gap-6 lg:grid-cols-2">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-950">Assignment Mix</h2>
-            <p className="mt-1 text-sm text-slate-600">Current distribution by reported assignment type.</p>
+            <h2 className="text-xl font-bold text-slate-950">Residential Valuation Distribution</h2>
+            <p className="mt-1 text-sm text-slate-600">Reported assignment category distribution across contributed intelligence points.</p>
 
             <div className="mt-6 space-y-4">
               {assignmentMix.length ? (
@@ -401,8 +402,8 @@ return (
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-950">Performance Benchmarks</h2>
-            <p className="mt-1 text-sm text-slate-600">Internal benchmark signals based on your current dataset.</p>
+            <h2 className="text-xl font-bold text-slate-950">Benchmark Indicators</h2>
+            <p className="mt-1 text-sm text-slate-600">Private operational indicators derived from contributed appraisal activity.</p>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <BenchmarkCard
@@ -432,10 +433,10 @@ return (
         <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
-              <h2 className="text-xl font-bold text-slate-950">Recent Activity</h2>
-              <p className="mt-1 text-sm text-slate-600">Latest private submissions tied to your account.</p>
+              <h2 className="text-xl font-bold text-slate-950">Recent Intelligence Contributions</h2>
+              <p className="mt-1 text-sm text-slate-600">Most recent contributed records supporting private benchmark analytics.</p>
             </div>
-            <p className="text-sm text-slate-500">Private contributor view</p>
+            <p className="text-sm text-slate-500">Contributor intelligence view</p>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
