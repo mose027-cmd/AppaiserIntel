@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import DashboardShell from "../../components/DashboardShell";
+
+type VerificationStatus = "pending" | "verified" | "rejected" | "not_submitted";
 
 const verificationSteps = [
   {
@@ -33,7 +35,10 @@ export default function NetworkPage() {
   );
 
   const [loading, setLoading] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState("");
+  const [verificationStatus, setVerificationStatus] =
+    useState<VerificationStatus>("not_submitted");
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -42,6 +47,38 @@ export default function NetworkPage() {
   });
 
   const [licenseFile, setLicenseFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    async function loadVerificationStatus() {
+      setStatusLoading(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setVerificationStatus("not_submitted");
+        setStatusLoading(false);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("verification_requests")
+        .select("status")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      setVerificationStatus(
+        (data?.status as VerificationStatus) || "not_submitted"
+      );
+
+      setStatusLoading(false);
+    }
+
+    loadVerificationStatus();
+  }, [supabase]);
 
   async function handleSubmit() {
     try {
@@ -70,7 +107,7 @@ export default function NetworkPage() {
       const filePath = `${user.id}/${Date.now()}-${licenseFile.name}`;
 
       const { error: uploadError } = await supabase.storage
-.from("license-pdfs")
+        .from("license-pdfs")
         .upload(filePath, licenseFile);
 
       if (uploadError) {
@@ -87,6 +124,7 @@ export default function NetworkPage() {
             email: formData.email,
             license_number: formData.licenseNumber,
             license_file_path: filePath,
+            status: "pending",
           },
         ]);
 
@@ -95,9 +133,8 @@ export default function NetworkPage() {
         return;
       }
 
-      setSuccessMessage(
-        "Verification request submitted successfully."
-      );
+      setSuccessMessage("Verification request submitted successfully.");
+      setVerificationStatus("pending");
 
       setFormData({
         fullName: "",
@@ -110,6 +147,34 @@ export default function NetworkPage() {
       setLoading(false);
     }
   }
+
+  const displayStatus = statusLoading
+    ? "Loading"
+    : verificationStatus === "not_submitted"
+    ? "Not Submitted"
+    : verificationStatus === "verified"
+    ? "Verified"
+    : verificationStatus === "rejected"
+    ? "Rejected"
+    : "Pending";
+
+  const statusSubtitle =
+    verificationStatus === "verified"
+      ? "Contributor verification approved"
+      : verificationStatus === "rejected"
+      ? "Contributor verification requires follow-up"
+      : verificationStatus === "pending"
+      ? "Contributor review stage"
+      : "Verification request not yet submitted";
+
+  const contributorRole =
+    verificationStatus === "verified"
+      ? "Verified Contributor"
+      : verificationStatus === "pending"
+      ? "Pending Contributor"
+      : verificationStatus === "rejected"
+      ? "Review Required"
+      : "Unverified Contributor";
 
   return (
     <DashboardShell>
@@ -132,25 +197,35 @@ export default function NetworkPage() {
         <section className="grid gap-6 md:grid-cols-4">
           <MetricCard
             title="Verification Status"
-            value="Pending"
-            subtitle="Contributor review stage"
+            value={displayStatus}
+            subtitle={statusSubtitle}
           />
 
           <MetricCard
             title="Access Layer"
-            value="Private"
+            value={
+              verificationStatus === "verified"
+                ? "Enabled"
+                : "Limited"
+            }
             subtitle="Appraiser-only intelligence access"
           />
 
           <MetricCard
             title="License Review"
-            value="Required"
+            value={
+              verificationStatus === "verified"
+                ? "Complete"
+                : verificationStatus === "pending"
+                ? "In Review"
+                : "Required"
+            }
             subtitle="PDF license verification"
           />
 
           <MetricCard
             title="Contributor Role"
-            value="Verified"
+            value={contributorRole}
             subtitle="Network participation standard"
           />
         </section>
@@ -166,68 +241,85 @@ export default function NetworkPage() {
               focused on residential appraisal professionals.
             </p>
 
-            <div className="mt-8 space-y-5">
-              <Input
-                label="Full Name"
-                placeholder="Contributor name"
-                value={formData.fullName}
-                onChange={(value) =>
-                  setFormData({ ...formData, fullName: value })
-                }
-              />
-
-              <Input
-                label="Email"
-                placeholder="Contributor email"
-                value={formData.email}
-                onChange={(value) =>
-                  setFormData({ ...formData, email: value })
-                }
-              />
-
-              <Input
-                label="License Number"
-                placeholder="Appraiser license number"
-                value={formData.licenseNumber}
-                onChange={(value) =>
-                  setFormData({
-                    ...formData,
-                    licenseNumber: value,
-                  })
-                }
-              />
-
-              <div>
-                <p className="mb-2 text-sm font-medium text-slate-600">
-                  License PDF
+            {verificationStatus === "verified" ? (
+              <div className="mt-8 rounded-3xl border border-green-200 bg-green-50 p-8">
+                <p className="text-sm font-semibold uppercase tracking-wide text-green-700">
+                  Verified Contributor
                 </p>
 
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  onChange={(e) =>
-                    setLicenseFile(e.target.files?.[0] || null)
-                  }
-                  className="block w-full rounded-2xl border border-slate-200 bg-white px-5 py-4"
-                />
+                <h3 className="mt-3 text-3xl font-bold text-slate-950">
+                  Verification Approved
+                </h3>
+
+                <p className="mt-3 text-sm leading-6 text-slate-600">
+                  Your contributor verification has been approved. Private
+                  intelligence access is enabled for this account.
+                </p>
               </div>
+            ) : (
+              <div className="mt-8 space-y-5">
+                <Input
+                  label="Full Name"
+                  placeholder="Contributor name"
+                  value={formData.fullName}
+                  onChange={(value) =>
+                    setFormData({ ...formData, fullName: value })
+                  }
+                />
 
-              {successMessage && (
-                <div className="rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-medium text-green-700">
-                  {successMessage}
+                <Input
+                  label="Email"
+                  placeholder="Contributor email"
+                  value={formData.email}
+                  onChange={(value) =>
+                    setFormData({ ...formData, email: value })
+                  }
+                />
+
+                <Input
+                  label="License Number"
+                  placeholder="Appraiser license number"
+                  value={formData.licenseNumber}
+                  onChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      licenseNumber: value,
+                    })
+                  }
+                />
+
+                <div>
+                  <p className="mb-2 text-sm font-medium text-slate-600">
+                    License PDF
+                  </p>
+
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) =>
+                      setLicenseFile(e.target.files?.[0] || null)
+                    }
+                    className="block w-full rounded-2xl border border-slate-200 bg-white px-5 py-4"
+                  />
                 </div>
-              )}
 
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="rounded-2xl bg-slate-950 px-6 py-3 font-medium text-white transition hover:bg-slate-800 disabled:opacity-50"
-              >
-                {loading
-                  ? "Submitting..."
-                  : "Submit Verification Request"}
-              </button>
-            </div>
+                {successMessage && (
+                  <div className="rounded-2xl border border-green-200 bg-green-50 p-4 text-sm font-medium text-green-700">
+                    {successMessage}
+                  </div>
+                )}
+
+                <button
+                  onClick={handleSubmit}
+                  disabled={loading}
+                  className="rounded-2xl bg-slate-950 px-6 py-3 font-medium text-white transition hover:bg-slate-800 disabled:opacity-50"
+                >
+                  {loading
+                    ? "Submitting..."
+                    : "Submit Verification Request"}
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
