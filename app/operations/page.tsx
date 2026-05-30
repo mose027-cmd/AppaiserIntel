@@ -1,6 +1,7 @@
 "use client";
 
 import DashboardShell from "../../components/DashboardShell";
+import VerifiedAccess from "../../components/VerifiedAccess";
 
 import {
   ResponsiveContainer,
@@ -46,8 +47,8 @@ const workflowData = [
 ];
 
 export default function OperationsPage() {
-  return (
-    <DashboardShell>
+return (
+  <VerifiedAccess>
 
       <div className="space-y-8">
 
@@ -205,7 +206,7 @@ export default function OperationsPage() {
 
       </div>
 
-    </DashboardShell>
+</VerifiedAccess>
   );
 }
 

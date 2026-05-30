@@ -1,6 +1,7 @@
 "use client";
 
 import DashboardShell from "../../components/DashboardShell";
+import VerifiedAccess from "../../components/VerifiedAccess";
 
 import {
   ResponsiveContainer,
@@ -49,7 +50,7 @@ const workloadData = [
 
 export default function TrendsPage() {
   return (
-    <DashboardShell>
+  <VerifiedAccess>
       <div className="space-y-8">
         <section className="rounded-3xl border border-slate-200 bg-white p-10 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-700">
@@ -198,7 +199,7 @@ export default function TrendsPage() {
           </div>
         </section>
       </div>
-    </DashboardShell>
+</VerifiedAccess>
   );
 }
 

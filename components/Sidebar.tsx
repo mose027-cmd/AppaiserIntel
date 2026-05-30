@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useVerificationStatus } from "../lib/useVerificationStatus";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard" },
@@ -14,6 +15,7 @@ const navItems = [
 ];
 
 export default function Sidebar() {
+  const { status } = useVerificationStatus();
   const pathname = usePathname();
 
   return (
@@ -58,11 +60,25 @@ export default function Sidebar() {
             Contributor Status
           </p>
 
-          <p className="mt-2 text-lg font-semibold">Verified Contributor</p>
+<p className="mt-2 text-lg font-semibold">
+  {status === "verified"
+    ? "Verified Contributor"
+    : status === "pending"
+    ? "Pending Review"
+    : status === "rejected"
+    ? "Review Required"
+    : "Unverified Contributor"}
+</p>
 
-          <p className="mt-2 text-sm text-slate-400">
-            Private intelligence access enabled
-          </p>
+<p className="mt-2 text-sm text-slate-400">
+  {status === "verified"
+    ? "Private intelligence access enabled"
+    : status === "pending"
+    ? "Verification currently under review"
+    : status === "rejected"
+    ? "Verification follow-up required"
+    : "Submit verification request"}
+</p>
         </div>
       </div>
     </aside>
