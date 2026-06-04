@@ -377,7 +377,7 @@ function getBenchmarkTier(index: number, count: number) {
   if (index >= 90) return "Upper Benchmark";
   if (index >= 80) return "Above Benchmark";
   if (index >= 60) return "Market Range";
-  return "Below Benchmark Range";
+return "Market Review Range";
 }
 
 function formatCurrency(value: number) {

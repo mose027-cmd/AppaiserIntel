@@ -411,7 +411,7 @@ function getAmcTier(score: number, count: number) {
   if (score >= 90) return "Upper Benchmark";
   if (score >= 80) return "Above Benchmark";
   if (score >= 60) return "Market Range";
-  return "Below Benchmark Range";
+return "Market Review Range";
 }
 function getConfidenceBadgeClass(confidence: string) {
 if (confidence === "High Confidence Dataset") {
