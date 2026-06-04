@@ -27,6 +27,7 @@ type AmcStats = {
   profitPerDay: number;
   score: number;
   tier: string;
+  confidence: string;
 };
 
 const supabase = createClient(
@@ -147,13 +148,26 @@ export default function CompensationPage() {
           avgRevisions,
           profitPerDay,
           score,
-          tier: getAmcTier(score),
+tier: getAmcTier(score, count),
+confidence: getConfidenceLevel(count),
         };
       })
       .sort((a, b) => b.score - a.score);
   }, [submissions, marketAvgNetFee, marketAvgTurnTime, marketAvgRevisions]);
 
-  const topAmc = amcStats[0];
+const topAmc = amcStats[0];
+
+const premiumAmcs = amcStats
+  .filter(
+    (item) =>
+      item.tier === "Upper Benchmark" ||
+      item.tier === "Above Benchmark"
+  )
+  .slice(0, 5);
+
+const lowValueAmcs = amcStats
+  .filter((item) => item.tier === "Developing Dataset")
+  .slice(0, 5);
 
   if (loading) {
     return (
@@ -203,9 +217,13 @@ export default function CompensationPage() {
           />
 
           <MetricCard
-            title="Top AMC"
-            value={topAmc ? topAmc.name : "N/A"}
-            subtitle={topAmc ? `${topAmc.tier} · Score ${topAmc.score}` : "No AMC data yet"}
+title="Dataset Confidence"
+value={
+  submissions.length >= 25
+    ? "Moderate Dataset"
+    : "Limited Dataset"
+}
+subtitle={`${submissions.length} submitted assignments currently contributing to benchmark calculations`}
           />
         </section>
 
@@ -238,10 +256,26 @@ export default function CompensationPage() {
           />
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-950">
-              AMC Scoreboard
+<section className="grid gap-6 lg:grid-cols-2">
+  <AmcListCard
+title="Above Benchmark Cohort"
+  subtitle="AMC relationships currently trending above submitted market benchmarks"
+    items={premiumAmcs}
+emptyMessage="No above-benchmark cohort data available at the current contribution volume."
+  />
+
+  <AmcListCard
+title="Developing Dataset Cohort"
+subtitle="AMC relationships with limited submitted data requiring additional contribution volume"
+    items={lowValueAmcs}
+    emptyMessage="No low value AMC data available yet."
+  />
+</section>
+
+<section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+  <div>
+    <h2 className="text-2xl font-bold text-slate-950">
+      AMC Scoreboard
             </h2>
 
             <p className="mt-2 text-sm text-slate-500">
@@ -255,8 +289,9 @@ export default function CompensationPage() {
               <thead className="bg-slate-50">
                 <tr>
                   <TableHeader>AMC</TableHeader>
-                  <TableHeader>Tier</TableHeader>
-                  <TableHeader>Score</TableHeader>
+<TableHeader>Tier</TableHeader>
+<TableHeader>Confidence</TableHeader>
+<TableHeader>Benchmark Index</TableHeader>
                   <TableHeader>Avg Net</TableHeader>
                   <TableHeader>Avg Turn</TableHeader>
                   <TableHeader>Avg Revisions</TableHeader>
@@ -282,9 +317,17 @@ export default function CompensationPage() {
                         {item.name}
                       </td>
 
-                      <td className="px-6 py-4 text-sm text-slate-600">
-                        {item.tier}
-                      </td>
+<td className="px-6 py-4 text-sm">
+  <span className={getTierBadgeClass(item.tier)}>
+    {item.tier}
+  </span>
+</td>
+
+<td className="px-6 py-4 text-sm">
+  <span className={getConfidenceBadgeClass(item.confidence)}>
+    {item.confidence}
+  </span>
+</td>
 
                       <td className="px-6 py-4 text-sm font-bold text-slate-950">
                         {item.score}
@@ -357,11 +400,44 @@ function calculateAmcScore({
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
-function getAmcTier(score: number) {
-  if (score >= 90) return "Elite";
-  if (score >= 80) return "Premium";
-  if (score >= 60) return "Average";
-  return "Low Value";
+function getConfidenceLevel(count: number) {
+  if (count >= 10) return "High Confidence Dataset";
+  if (count >= 5) return "Moderate Dataset";
+  return "Limited Dataset";
+}
+
+function getAmcTier(score: number, count: number) {
+  if (count < 3) return "Developing Dataset";
+  if (score >= 90) return "Upper Benchmark";
+  if (score >= 80) return "Above Benchmark";
+  if (score >= 60) return "Market Range";
+  return "Below Benchmark Range";
+}
+function getConfidenceBadgeClass(confidence: string) {
+if (confidence === "High Confidence Dataset") {
+    return "inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700";
+  }
+
+if (confidence === "Moderate Dataset") {
+    return "inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700";
+  }
+
+  return "inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700";
+}
+function getTierBadgeClass(tier: string) {
+if (tier === "Upper Benchmark") {
+    return "inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700";
+  }
+
+if (tier === "Above Benchmark") {
+    return "inline-flex rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700";
+  }
+
+if (tier === "Market Range") {
+    return "inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700";
+  }
+
+  return "inline-flex rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-700";
 }
 
 function formatCurrency(value: number) {
@@ -395,6 +471,72 @@ function InsightCard({ title, value }: { title: string; value: string }) {
     <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
       <p className="text-sm text-slate-500">{title}</p>
       <p className="mt-3 text-2xl font-bold text-slate-950">{value}</p>
+    </div>
+  );
+}
+
+function AmcListCard({
+  title,
+  subtitle,
+  items,
+  emptyMessage,
+}: {
+  title: string;
+  subtitle: string;
+  items: AmcStats[];
+  emptyMessage: string;
+}) {
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div>
+        <h2 className="text-2xl font-bold text-slate-950">{title}</h2>
+        <p className="mt-2 text-sm text-slate-500">{subtitle}</p>
+      </div>
+
+      <div className="mt-6 space-y-4">
+        {items.length === 0 ? (
+          <p className="text-sm text-slate-500">{emptyMessage}</p>
+        ) : (
+          items.map((item) => (
+            <div
+              key={item.name}
+              className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="font-semibold text-slate-950">{item.name}</p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {formatCurrency(item.avgNet)} avg net · {item.avgTurn.toFixed(1)} days
+                  </p>
+                </div>
+
+                <span className={getTierBadgeClass(item.tier)}>
+                  {item.tier}
+                </span>
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+                <div>
+<p className="text-slate-500">Benchmark Index</p>
+                  <p className="font-bold text-slate-950">{item.score}</p>
+                </div>
+
+                <div>
+                  <p className="text-slate-500">Profit / Day</p>
+                  <p className="font-bold text-slate-950">
+                    {formatCurrency(item.profitPerDay)}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-slate-500">Count</p>
+                  <p className="font-bold text-slate-950">{item.count}</p>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
