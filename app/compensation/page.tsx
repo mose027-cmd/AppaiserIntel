@@ -191,10 +191,10 @@ const lowValueAmcs = amcStats
             AMC Benchmark Intelligence
           </h1>
 
-          <p className="mt-4 max-w-4xl text-base leading-7 text-slate-600">
-            Compare AMC fee strength, turn-time behavior, revision burden, and
-            operational profitability across submitted appraisal activity.
-          </p>
+<p className="mt-4 max-w-4xl text-base leading-7 text-slate-600">
+  Compare AMC fee patterns, turn-time behavior, revision burden, and
+  operational trends across submitted appraisal activity.
+</p>
         </section>
 
         <section className="grid gap-6 md:grid-cols-4">
