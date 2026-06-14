@@ -261,8 +261,7 @@ subtitle="Lender relationships with submitted data available for benchmark compa
                   <TableHeader>Avg Net</TableHeader>
                   <TableHeader>Avg Turn</TableHeader>
                   <TableHeader>Avg Revisions</TableHeader>
-<TableHeader>Compensation Benchmark</TableHeader>
-                  <TableHeader>Count</TableHeader>
+<TableHeader>Count</TableHeader>
                 </tr>
               </thead>
 
@@ -311,13 +310,9 @@ subtitle="Lender relationships with submitted data available for benchmark compa
                         {item.avgRevisions.toFixed(1)}
                       </td>
 
-                      <td className="px-6 py-4 text-sm text-slate-600">
-                        {formatCurrency(item.profitPerDay)}
-                      </td>
-
-                      <td className="px-6 py-4 text-sm text-slate-600">
-                        {item.count}
-                      </td>
+<td className="px-6 py-4 text-sm text-slate-600">
+  {item.count}
+</td>
                     </tr>
                   ))
                 )}
