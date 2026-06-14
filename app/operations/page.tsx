@@ -261,7 +261,7 @@ subtitle="Lender relationships with submitted data available for benchmark compa
                   <TableHeader>Avg Net</TableHeader>
                   <TableHeader>Avg Turn</TableHeader>
                   <TableHeader>Avg Revisions</TableHeader>
-                  <TableHeader>Profit / Day</TableHeader>
+<TableHeader>Compensation Benchmark</TableHeader>
                   <TableHeader>Count</TableHeader>
                 </tr>
               </thead>
