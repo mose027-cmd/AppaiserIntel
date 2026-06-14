@@ -160,7 +160,7 @@ export default function TrendsPage() {
   const aboveBenchmarkAssignments = assignmentStats
     .filter(
       (item) =>
-        item.tier === "Upper Benchmark" ||
+        item.tier === "Benchmark Advantage Range"||
         item.tier === "Above Benchmark"
     )
     .slice(0, 5);
@@ -377,7 +377,7 @@ function getConfidenceLevel(count: number) {
 
 function getBenchmarkTier(index: number, count: number) {
   if (count < 3) return "Developing Dataset";
-  if (index >= 90) return "Upper Benchmark";
+  if (index >= 90) return "Benchmark Advantage Range";
   if (index >= 80) return "Above Benchmark";
   if (index >= 60) return "Market Range";
 return "Market Review Range";
@@ -404,7 +404,7 @@ function getConfidenceBadgeClass(confidence: string) {
 }
 
 function getTierBadgeClass(tier: string) {
-  if (tier === "Upper Benchmark") {
+  if (tier === "Benchmark Advantage Range") {
     return "inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700";
   }
 

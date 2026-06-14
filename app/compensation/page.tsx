@@ -160,7 +160,7 @@ const topAmc = amcStats[0];
 const premiumAmcs = amcStats
   .filter(
     (item) =>
-      item.tier === "Upper Benchmark" ||
+      item.tier === "Benchmark Advantage Range" ||
       item.tier === "Above Benchmark"
   )
   .slice(0, 5);
@@ -409,7 +409,7 @@ function getConfidenceLevel(count: number) {
 
 function getAmcTier(score: number, count: number) {
   if (count < 3) return "Developing Dataset";
-  if (score >= 90) return "Upper Benchmark";
+  if (score >= 90) return "Benchmark Advantage Range";
   if (score >= 80) return "Above Benchmark";
   if (score >= 60) return "Market Range";
 return "Market Review Range";
@@ -426,7 +426,7 @@ if (confidence === "Moderate Dataset") {
   return "inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700";
 }
 function getTierBadgeClass(tier: string) {
-if (tier === "Upper Benchmark") {
+if (tier === "Benchmark Advantage Range") {
     return "inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700";
   }
 
