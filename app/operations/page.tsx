@@ -367,9 +367,10 @@ function calculateBenchmarkIndex({
 }
 
 function getConfidenceLevel(count: number) {
-  if (count >= 10) return "High Confidence Dataset";
-  if (count >= 5) return "Moderate Dataset";
-  return "Limited Dataset";
+  if (count >= 100) return "Benchmark Established";
+  if (count >= 50) return "Benchmark Expanding";
+  if (count >= 25) return "Benchmark Emerging";
+  return "Benchmark Developing";
 }
 
 function getBenchmarkTier(index: number, count: number) {
