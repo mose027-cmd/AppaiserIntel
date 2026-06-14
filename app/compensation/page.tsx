@@ -274,14 +274,14 @@ subtitle="AMC relationships with limited submitted data requiring additional con
 
 <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
   <div>
-    <h2 className="text-2xl font-bold text-slate-950">
-      AMC Scoreboard
-            </h2>
+<h2 className="text-2xl font-bold text-slate-950">
+  AMC Benchmark Table
+        </h2>
 
-            <p className="mt-2 text-sm text-slate-500">
-              Ranked AMC performance based on fee strength, turn time, revision
-              burden, and net profit per day.
-            </p>
+        <p className="mt-2 text-sm text-slate-500">
+          Submitted AMC benchmark observations across fee patterns, turn time,
+          revision burden, and net fee per day.
+        </p>
           </div>
 
           <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200">
