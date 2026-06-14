@@ -224,8 +224,8 @@ export default function OperationsPage() {
 
         <section className="grid gap-6 lg:grid-cols-2">
           <LenderListCard
-            title="Above Benchmark Cohort"
-            subtitle="Lender relationships currently trending above submitted market benchmarks"
+title="Benchmark Comparison Cohort"
+subtitle="Lender relationships with submitted data available for benchmark comparison"
             items={aboveBenchmarkLenders}
             emptyMessage="No above-benchmark cohort data available at the current contribution volume."
           />
