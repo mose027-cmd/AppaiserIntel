@@ -268,18 +268,18 @@ const contributorRole =
           </p>
 </section>
 
-<section className="grid gap-6 md:grid-cols-4">
-<MetricCard
-  title="Verified Contributors"
-  value={verifiedContributorCount.toString()}
-  subtitle="Approved contributor accounts"
-/>
+<section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+  <MetricCard
+    title="Verified Contributors"
+    value={verifiedContributorCount.toString()}
+    subtitle="Approved contributor accounts"
+  />
 
-<MetricCard
-  title="Submitted Assignments"
-  value={submissionCount.toString()}
-  subtitle="Contributor intelligence records"
-/>
+  <MetricCard
+    title="Submitted Assignments"
+    value={submissionCount.toString()}
+    subtitle="Contributor intelligence records"
+  />
 
   <MetricCard
     title="AMC Coverage"
@@ -292,12 +292,14 @@ const contributorRole =
     value={lenderCoverage.toString()}
     subtitle="Distinct lender relationships"
   />
+</section>
 
-<MetricCard
-  title="Dataset Confidence"
-  value={datasetConfidence}
-  subtitle={datasetConfidenceSubtitle}
-/>
+<section>
+  <MetricCard
+    title="Dataset Confidence"
+    value={datasetConfidence}
+    subtitle={datasetConfidenceSubtitle}
+  />
 </section>
 
         <section className="grid gap-6 md:grid-cols-4">
