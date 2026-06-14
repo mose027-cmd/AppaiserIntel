@@ -350,7 +350,7 @@ const contributorRole =
             </p>
 
             {verificationStatus === "verified" ? (
-              <div className="mt-8 rounded-3xl border border-green-200 bg-green-50 p-8">
+<div className="mt-6 rounded-2xl border border-green-200 bg-green-50 p-6">
                 <p className="text-sm font-semibold uppercase tracking-wide text-green-700">
                   Verified Contributor
                 </p>
