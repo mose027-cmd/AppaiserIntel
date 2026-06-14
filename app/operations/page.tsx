@@ -485,12 +485,12 @@ function LenderListCard({
                   <p className="font-bold text-slate-950">{item.index}</p>
                 </div>
 
-                <div>
-                  <p className="text-slate-500">Profit / Day</p>
-                  <p className="font-bold text-slate-950">
-                    {formatCurrency(item.profitPerDay)}
-                  </p>
-                </div>
+<div>
+  <p className="text-slate-500">Compensation Benchmark</p>
+  <p className="font-bold text-slate-950">
+    {item.index}
+  </p>
+</div>
 
                 <div>
                   <p className="text-slate-500">Count</p>
