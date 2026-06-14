@@ -240,14 +240,14 @@ subtitle="Lender relationships with submitted data available for benchmark compa
 
         <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
           <div>
-            <h2 className="text-2xl font-bold text-slate-950">
-              Lender Scoreboard
-            </h2>
+<h2 className="text-2xl font-bold text-slate-950">
+  Lender Benchmark Table
+</h2>
 
-            <p className="mt-2 text-sm text-slate-500">
-              Lender benchmark positioning based on compensation, turn time,
-              revision activity, net profit per day, and dataset confidence.
-            </p>
+<p className="mt-2 text-sm text-slate-500">
+  Submitted lender benchmark observations across compensation patterns,
+  turn-time patterns, revision activity, net fee per day, and dataset confidence.
+</p>
           </div>
 
           <div className="mt-8 overflow-hidden rounded-2xl border border-slate-200">
