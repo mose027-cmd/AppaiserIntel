@@ -444,7 +444,7 @@ const contributorRole =
               {verificationSteps.map((step, index) => (
                 <div
                   key={step.title}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-6"
+className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                 >
                   <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
                     Step {index + 1}
