@@ -87,15 +87,25 @@ export default function SubmitPage() {
     }
 
     if (step === 3) {
-      if (!formData.turnTime || Number(formData.turnTime) <= 0) {
-        setErrorMessage("Please enter a valid turn time.");
-        return false;
-      }
+if (!formData.turnTime || Number(formData.turnTime) <= 0) {
+  setErrorMessage("Please enter a valid turn time.");
+  return false;
+}
 
-      if (formData.revisionRounds === "" || Number(formData.revisionRounds) < 0) {
-        setErrorMessage("Please enter revision rounds. Use 0 if none.");
-        return false;
-      }
+if (Number(formData.turnTime) > 30) {
+  setErrorMessage("Turn time must be 30 days or less.");
+  return false;
+}
+
+if (formData.revisionRounds === "" || Number(formData.revisionRounds) < 0) {
+  setErrorMessage("Please enter revision rounds. Use 0 if none.");
+  return false;
+}
+
+if (Number(formData.revisionRounds) > 10) {
+  setErrorMessage("Revision rounds must be 10 or fewer.");
+  return false;
+}
     }
 
     return true;
