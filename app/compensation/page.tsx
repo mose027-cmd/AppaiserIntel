@@ -257,12 +257,12 @@ subtitle={`${submissions.length} submitted assignments currently contributing to
         </section>
 
 <section className="grid gap-6 lg:grid-cols-2">
-  <AmcListCard
-title="Above Benchmark Cohort"
-  subtitle="AMC relationships currently trending above submitted market benchmarks"
-    items={premiumAmcs}
-emptyMessage="No above-benchmark cohort data available at the current contribution volume."
-  />
+<AmcListCard
+title="Benchmark Comparison Cohort"
+subtitle="AMC relationships with submitted data available for benchmark comparison"
+  items={premiumAmcs}
+emptyMessage="No benchmark comparison cohort data available at the current contribution volume."
+/>
 
   <AmcListCard
 title="Developing Dataset Cohort"
