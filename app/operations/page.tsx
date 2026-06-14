@@ -189,11 +189,11 @@ export default function OperationsPage() {
             Lender Benchmark Intelligence
           </h1>
 
-          <p className="mt-4 max-w-4xl text-base leading-7 text-slate-600">
-            Review lender compensation patterns, turn-time performance,
-            revision activity, and dataset confidence across submitted
-            appraisal assignments.
-          </p>
+<p className="mt-4 max-w-4xl text-base leading-7 text-slate-600">
+  Review lender compensation patterns, turn-time patterns,
+  revision activity, and dataset confidence across submitted
+  appraisal assignments.
+</p>
         </section>
 
         <section className="grid gap-6 md:grid-cols-4">
