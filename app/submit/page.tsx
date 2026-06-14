@@ -75,8 +75,13 @@ export default function SubmitPage() {
         return false;
       }
 
-      if (netFee < 0) {
-        setErrorMessage("Net compensation cannot be below zero.");
+      if (Number(formData.techFee || 0) >= Number(formData.grossFee)) {
+        setErrorMessage("Technology fee must be less than the gross fee.");
+        return false;
+      }
+
+      if (netFee <= 0) {
+        setErrorMessage("Net compensation must be greater than zero.");
         return false;
       }
     }

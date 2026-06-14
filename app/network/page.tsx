@@ -46,9 +46,52 @@ export default function NetworkPage() {
     licenseNumber: "",
   });
 
-  const [licenseFile, setLicenseFile] = useState<File | null>(null);
+const [licenseFile, setLicenseFile] = useState<File | null>(null);
+const [submissionCount, setSubmissionCount] = useState(0);
+const [amcCoverage, setAmcCoverage] = useState(0);
+const [lenderCoverage, setLenderCoverage] = useState(0);
+const [assignmentCoverage, setAssignmentCoverage] = useState(0);
 
-  useEffect(() => {
+useEffect(() => {
+    async function loadDatasetCoverage() {
+      const { data, error } = await supabase
+        .from("submissions")
+        .select("amc, lender, assignment_type");
+
+      if (error) {
+        console.error("Error loading dataset coverage:", error);
+        return;
+      }
+
+      const submissions = data || [];
+
+      setSubmissionCount(submissions.length);
+
+      setAmcCoverage(
+        new Set(
+          submissions
+            .map((item) => item.amc?.trim())
+            .filter(Boolean)
+        ).size
+      );
+
+      setLenderCoverage(
+        new Set(
+          submissions
+            .map((item) => item.lender?.trim())
+            .filter(Boolean)
+        ).size
+      );
+
+      setAssignmentCoverage(
+        new Set(
+          submissions
+            .map((item) => item.assignment_type?.trim())
+            .filter(Boolean)
+        ).size
+      );
+    }
+
     async function loadVerificationStatus() {
       setStatusLoading(true);
 
@@ -77,7 +120,8 @@ export default function NetworkPage() {
       setStatusLoading(false);
     }
 
-    loadVerificationStatus();
+loadVerificationStatus();
+    loadDatasetCoverage();
   }, [supabase]);
 
   async function handleSubmit() {
@@ -192,7 +236,33 @@ export default function NetworkPage() {
             Private appraiser-only intelligence access supported by contributor
             verification, license review, and protected participation standards.
           </p>
-        </section>
+</section>
+
+<section className="grid gap-6 md:grid-cols-4">
+  <MetricCard
+    title="Submitted Assignments"
+    value={submissionCount.toString()}
+    subtitle="Contributor intelligence records"
+  />
+
+  <MetricCard
+    title="AMC Coverage"
+    value={amcCoverage.toString()}
+    subtitle="Distinct AMC relationships"
+  />
+
+  <MetricCard
+    title="Lender Coverage"
+    value={lenderCoverage.toString()}
+    subtitle="Distinct lender relationships"
+  />
+
+  <MetricCard
+    title="Assignment Coverage"
+    value={assignmentCoverage.toString()}
+    subtitle="Assignment types represented"
+  />
+</section>
 
         <section className="grid gap-6 md:grid-cols-4">
           <MetricCard
