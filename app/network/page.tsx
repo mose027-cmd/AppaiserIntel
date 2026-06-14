@@ -48,20 +48,32 @@ export default function NetworkPage() {
 
 const [licenseFile, setLicenseFile] = useState<File | null>(null);
 const [submissionCount, setSubmissionCount] = useState(0);
+const [verifiedContributorCount, setVerifiedContributorCount] = useState(0);
 const [amcCoverage, setAmcCoverage] = useState(0);
 const [lenderCoverage, setLenderCoverage] = useState(0);
 const [assignmentCoverage, setAssignmentCoverage] = useState(0);
 
 useEffect(() => {
     async function loadDatasetCoverage() {
-      const { data, error } = await supabase
-        .from("submissions")
-        .select("amc, lender, assignment_type");
+const { data, error } = await supabase
+  .from("submissions")
+  .select("amc, lender, assignment_type");
 
-      if (error) {
-        console.error("Error loading dataset coverage:", error);
-        return;
-      }
+const { data: verifiedData, error: verifiedError } = await supabase
+  .from("verification_requests")
+  .select("id")
+  .eq("status", "verified");
+
+if (error) {
+  console.error("Error loading dataset coverage:", error);
+  return;
+}
+
+if (verifiedError) {
+  console.error("Error loading verified contributors:", verifiedError);
+} else {
+  setVerifiedContributorCount(verifiedData?.length || 0);
+}
 
       const submissions = data || [];
 
@@ -211,14 +223,32 @@ loadVerificationStatus();
       ? "Contributor review stage"
       : "Verification request not yet submitted";
 
-  const contributorRole =
-    verificationStatus === "verified"
-      ? "Verified Contributor"
-      : verificationStatus === "pending"
-      ? "Pending Contributor"
-      : verificationStatus === "rejected"
-      ? "Review Required"
-      : "Unverified Contributor";
+const datasetConfidence =
+  submissionCount >= 1000
+    ? "Strong Benchmark Dataset"
+    : submissionCount >= 250
+    ? "Moderate Benchmark Dataset"
+    : submissionCount >= 50
+    ? "Emerging Benchmark Dataset"
+    : "Developing Dataset";
+
+const datasetConfidenceSubtitle =
+  submissionCount >= 1000
+    ? "Broad contributor volume supports stronger benchmark confidence"
+    : submissionCount >= 250
+    ? "Contributor volume supports moderate benchmark confidence"
+    : submissionCount >= 50
+    ? "Contributor volume supports early benchmark confidence"
+    : "Current contributor volume supports early-stage benchmark development";
+
+const contributorRole =
+  verificationStatus === "verified"
+    ? "Verified Contributor"
+    : verificationStatus === "pending"
+    ? "Pending Contributor"
+    : verificationStatus === "rejected"
+    ? "Review Required"
+    : "Unverified Contributor";
 
   return (
     <DashboardShell>
@@ -239,11 +269,17 @@ loadVerificationStatus();
 </section>
 
 <section className="grid gap-6 md:grid-cols-4">
-  <MetricCard
-    title="Submitted Assignments"
-    value={submissionCount.toString()}
-    subtitle="Contributor intelligence records"
-  />
+<MetricCard
+  title="Verified Contributors"
+  value={verifiedContributorCount.toString()}
+  subtitle="Approved contributor accounts"
+/>
+
+<MetricCard
+  title="Submitted Assignments"
+  value={submissionCount.toString()}
+  subtitle="Contributor intelligence records"
+/>
 
   <MetricCard
     title="AMC Coverage"
@@ -257,11 +293,11 @@ loadVerificationStatus();
     subtitle="Distinct lender relationships"
   />
 
-  <MetricCard
-    title="Assignment Coverage"
-    value={assignmentCoverage.toString()}
-    subtitle="Assignment types represented"
-  />
+<MetricCard
+  title="Dataset Confidence"
+  value={datasetConfidence}
+  subtitle={datasetConfidenceSubtitle}
+/>
 </section>
 
         <section className="grid gap-6 md:grid-cols-4">
