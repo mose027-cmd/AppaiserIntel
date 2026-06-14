@@ -446,17 +446,25 @@ const contributorRole =
                   key={step.title}
 className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
                 >
-                  <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
-                    Step {index + 1}
-                  </p>
+<div className="flex items-start gap-4">
+  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-green-50 text-sm font-bold text-green-700">
+    ✓
+  </div>
 
-                  <h3 className="mt-2 text-xl font-bold text-slate-950">
-                    {step.title}
-                  </h3>
+  <div>
+    <p className="text-xs font-semibold uppercase tracking-wide text-blue-700">
+      Step {index + 1}
+    </p>
 
-                  <p className="mt-2 text-sm leading-6 text-slate-600">
-                    {step.description}
-                  </p>
+    <h3 className="mt-1 text-lg font-bold text-slate-950">
+      {step.title}
+    </h3>
+
+    <p className="mt-1 text-sm leading-6 text-slate-600">
+      {step.description}
+    </p>
+  </div>
+</div>
                 </div>
               ))}
             </div>
