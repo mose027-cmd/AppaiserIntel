@@ -243,7 +243,7 @@ export default function TrendsPage() {
         <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
           <div>
             <h2 className="text-2xl font-bold text-slate-950">
-              Assignment Type Scoreboard
+Assignment Benchmark Table
             </h2>
 
             <p className="mt-2 text-sm text-slate-500">
@@ -264,7 +264,7 @@ export default function TrendsPage() {
                   <TableHeader>Avg Net</TableHeader>
                   <TableHeader>Avg Turn</TableHeader>
                   <TableHeader>Avg Revisions</TableHeader>
-                  <TableHeader>Profit / Day</TableHeader>
+<TableHeader>Net Fee Efficiency</TableHeader>
                   <TableHeader>Count</TableHeader>
                 </tr>
               </thead>

@@ -295,7 +295,7 @@ subtitle="AMC relationships with limited submitted data requiring additional con
                   <TableHeader>Avg Net</TableHeader>
                   <TableHeader>Avg Turn</TableHeader>
                   <TableHeader>Avg Revisions</TableHeader>
-                  <TableHeader>Profit / Day</TableHeader>
+<TableHeader>Net Fee Efficiency</TableHeader>
                   <TableHeader>Count</TableHeader>
                 </tr>
               </thead>
@@ -523,7 +523,7 @@ function AmcListCard({
                 </div>
 
                 <div>
-                  <p className="text-slate-500">Profit / Day</p>
+                  <p className="text-slate-500">Fee Efficiency</p>
                   <p className="font-bold text-slate-950">
                     {formatCurrency(item.profitPerDay)}
                   </p>

@@ -234,31 +234,39 @@ const { data, error } = await supabase
 return (
 <DashboardShell>
       <div className="mx-auto max-w-7xl">
-        <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-700">
-                Appraiser Intel
-              </p>
-              <h1 className="mt-3 max-w-4xl text-4xl font-bold tracking-tight text-slate-950 md:text-5xl">
-                Professional market analytics and operational benchmarking for appraisal firms.
-              </h1>
-              <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">
-                Compare fee performance, turn times, technology costs, revision burden, and client-level operating patterns across lender and AMC relationships.
-              </p>
-            </div>
+<section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+  <div className="grid grid-cols-12 gap-6 items-start">
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 lg:min-w-72">
-              <p className="text-sm font-medium text-slate-500">Data Status</p>
-              <p className="mt-2 text-2xl font-bold text-slate-950">
-                {loading ? "Loading" : `${total} submissions`}
-              </p>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
-                Your private dashboard only reflects records tied to your verified user account.
-              </p>
-            </div>
-          </div>
-        </section>
+    {/* LEFT SIDE */}
+    <div className="col-span-8">
+      <p className="text-xs font-semibold uppercase tracking-widest text-blue-700">
+        Appraiser Intel
+      </p>
+
+      <h1 className="mt-2 text-3xl font-bold text-slate-950 leading-tight">
+        Operational benchmarking intelligence for appraisal firms
+      </h1>
+
+      <p className="mt-3 text-sm leading-6 text-slate-600 max-w-2xl">
+        Analyze compensation patterns, turn-time behavior, revision burden, and lender/AMC activity across submitted appraisal data.
+      </p>
+    </div>
+
+    {/* RIGHT SIDE */}
+    <div className="col-span-4">
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <p className="text-xs text-slate-500">Data Status</p>
+        <p className="mt-1 text-lg font-bold text-slate-950">
+          {loading ? "Loading" : `${total} submissions`}
+        </p>
+        <p className="mt-2 text-xs leading-5 text-slate-600">
+          Private dataset tied to verified contributor accounts
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
 
         {errorMessage && (
           <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
@@ -266,7 +274,7 @@ return (
           </div>
         )}
 
-        <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+        <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <MetricCard label="Avg Gross Fee" value={money.format(avgGrossFee)} helper="Before technology/upload fees" />
           <MetricCard label="Avg Tech Fee" value={money.format(avgTechFee)} helper={`${money.format(totalTechFees)} total absorbed`} />
           <MetricCard label="Avg Net Fee" value={money.format(avgNetFee)} helper="True fee after tech costs" />
@@ -274,7 +282,7 @@ return (
           <MetricCard label="Avg Revisions" value={avgRevisionRounds ? avgRevisionRounds.toFixed(1) : "—"} helper="Rounds per assignment" />
         </section>
 
-        <section className="mt-8 grid gap-6 lg:grid-cols-3">
+        <section className="mt-8 grid gap-6 lg:grid-cols-3 gap-4">
           <InsightCard
             title="Client Compensation Signal"
             headline={strongestClient ? `${strongestClient.name}` : "Insufficient Data"}
@@ -439,7 +447,7 @@ Aggregated contributor benchmarks across compensation, technology fees, turn cyc
             <p className="text-sm text-slate-500">Contributor intelligence view</p>
           </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {recentSubmissions.length ? (
               recentSubmissions.map((item) => {
                 const client = normalizeClientName(item.lender) !== "Unspecified" ? item.lender : item.amc;

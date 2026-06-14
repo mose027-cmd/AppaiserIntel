@@ -17,9 +17,11 @@ export default function DashboardShell({
 
         <Topbar />
 
-        <main className="p-8">
-          {children}
-        </main>
+<main className="p-8">
+  <div className="mx-auto max-w-7xl">
+    {children}
+  </div>
+</main>
 
       </div>
 
