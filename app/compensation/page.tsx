@@ -228,32 +228,32 @@ subtitle={`${submissions.length} submitted assignments currently contributing to
         </section>
 
         <section className="grid gap-6 md:grid-cols-3">
-          <InsightCard
-            title="Fee Strength"
-            value={
-              topAmc && topAmc.avgNet >= marketAvgNetFee
-                ? "Above Market"
-                : "Market Developing"
-            }
-          />
+<InsightCard
+  title="Net Fee Benchmark"
+  value={
+    topAmc && topAmc.avgNet >= marketAvgNetFee
+      ? "Above Benchmark Range"
+      : "Benchmark Developing"
+  }
+/>
 
-          <InsightCard
-            title="Turn Time"
-            value={
-              topAmc && topAmc.avgTurn <= marketAvgTurnTime
-                ? "Faster Than Market"
-                : "Market Aligned"
-            }
-          />
+<InsightCard
+  title="Turn-Time Benchmark"
+  value={
+    topAmc && topAmc.avgTurn <= marketAvgTurnTime
+      ? "Shorter Turn-Time Range"
+      : "Benchmark Aligned"
+  }
+/>
 
-          <InsightCard
-            title="Revision Pattern"
-            value={
-              topAmc && topAmc.avgRevisions <= marketAvgRevisions
-                ? "Lower Revision Frequency"
-                : "Market Aligned"
-            }
-          />
+<InsightCard
+  title="Revision Benchmark"
+  value={
+    topAmc && topAmc.avgRevisions <= marketAvgRevisions
+      ? "Lower Revision Range"
+      : "Benchmark Aligned"
+  }
+/>
         </section>
 
 <section className="grid gap-6 lg:grid-cols-2">
